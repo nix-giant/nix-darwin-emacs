@@ -29,6 +29,10 @@ $ nix build .#emacs-29
 $ nix build .#emacs-unstable
 #+end_src
 
+#+begin_quote
+This repo cannot guarantee =emacs-unstable= will consistently build successfully.
+#+end_quote
+
 Then, explore the directory =result=:
 #+begin_src sh
 $ ls ./result
