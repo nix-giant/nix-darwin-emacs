@@ -41,7 +41,7 @@ $ ls ./result
 #+begin_src nix
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin"; # or use newer branch
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin"; # or use newer branch
 
     darwin = {
       url = "github:lnl7/nix-darwin";
