@@ -1,0 +1,9 @@
+{
+  "type": "github",
+  "owner": "emacs-mirror",
+  "repo": "emacs",
+  "branch": "emacs-30",
+  "rev": "45a78ec6c57ab7d88846a143f81087d5575d0422",
+  "sha256": "1qm5bs83jakmznaq0ychnc6bvlf2ggs7v3y1wxj5j4a3gw760imz",
+  "version": "20240815.0"
+}

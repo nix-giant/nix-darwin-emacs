@@ -73,3 +73,4 @@ function update_github_repo() {
 
 update_github_repo emacs-mirror emacs master unstable
 update_github_repo emacs-mirror emacs emacs-29 29
+update_github_repo emacs-mirror emacs emacs-30 30
