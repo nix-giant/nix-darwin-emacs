@@ -24,8 +24,7 @@ If you need them, try to use overlay ~package~ provided by [[https://github.com/
 First, build it:
 #+begin_src sh
 $ nix build .#emacs-29
-
-# or
+$ nix build .#emacs-30
 $ nix build .#emacs-unstable
 #+end_src
 
