@@ -7,24 +7,26 @@
 let
   parse = pkgs.callPackage ./parse.nix { };
 in
-{ packageElisp
-, extraEmacsPackages ? epkgs: [ ]
-, package ? pkgs.emacs-unstable
-, override ? (self: super: { })
+{
+  packageElisp,
+  extraEmacsPackages ? epkgs: [ ],
+  package ? pkgs.emacs-unstable,
+  override ? (self: super: { }),
 }:
 let
   packages = parse.parsePackagesFromPackageRequires packageElisp;
-  emacsPackages = (pkgs.emacsPackagesFor package).overrideScope (self: super:
+  emacsPackages = (pkgs.emacsPackagesFor package).overrideScope (
+    self: super:
     # for backward compatibility: override was a function with one parameter
-    if builtins.isFunction (override super)
-    then override self super
-    else override super
+    if builtins.isFunction (override super) then override self super else override super
   );
   emacsWithPackages = emacsPackages.emacsWithPackages;
 in
-emacsWithPackages (epkgs:
-let
-  usePkgs = builtins.map (name: epkgs.${name}) packages;
-  extraPkgs = extraEmacsPackages epkgs;
-in
-[ epkgs.use-package ] ++ usePkgs ++ extraPkgs)
+emacsWithPackages (
+  epkgs:
+  let
+    usePkgs = builtins.map (name: epkgs.${name}) packages;
+    extraPkgs = extraEmacsPackages epkgs;
+  in
+  [ epkgs.use-package ] ++ usePkgs ++ extraPkgs
+)

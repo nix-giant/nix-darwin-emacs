@@ -5,9 +5,7 @@ let
 
   isStrEmpty = s: (builtins.replaceStrings [ " " ] [ "" ] s) == "";
 
-  splitString = _sep: _s: builtins.filter
-    (x: builtins.typeOf x == "string")
-    (builtins.split _sep _s);
+  splitString = _sep: _s: builtins.filter (x: builtins.typeOf x == "string") (builtins.split _sep _s);
 
   # Parse (all) Package-Requires packageElisp headers found in the input string
   # `packageElisp` into a list of package name strings.
@@ -22,25 +20,28 @@ let
   #  => [ "dash" "pkg-info" ]
   #  ;; Package-Requires: ((dash) (pkg-info "0.4"))
   #  => [ "dash" "pkg-info" ]
-  parsePackagesFromPackageRequires = packageElisp:
+  parsePackagesFromPackageRequires =
+    packageElisp:
     let
       lines = splitString "\r?\n" packageElisp;
-      requires =
-        lib.concatMapStrings
-          (line:
-            let match = builtins.match ";;;* *[pP]ackage-[rR]equires *: *\\((.*)\\) *" line;
-            in if match == null then "" else builtins.head match)
-          lines;
-      parseReqList = s:
-        let matchAndRest = builtins.match " *\\(? *([^ \"\\)]+)( +\"[^\"]+\" *\\)| *\\))?(.*)" s;
+      requires = lib.concatMapStrings (
+        line:
+        let
+          match = builtins.match ";;;* *[pP]ackage-[rR]equires *: *\\((.*)\\) *" line;
+        in
+        if match == null then "" else builtins.head match
+      ) lines;
+      parseReqList =
+        s:
+        let
+          matchAndRest = builtins.match " *\\(? *([^ \"\\)]+)( +\"[^\"]+\" *\\)| *\\))?(.*)" s;
         in
         if isStrEmpty s then
           [ ]
+        else if matchAndRest == null then
+          throw "Failed to parse package requirements list: ${s}"
         else
-          if matchAndRest == null then
-            throw "Failed to parse package requirements list: ${s}"
-          else
-            [ (builtins.head matchAndRest) ] ++ (parseReqList (builtins.elemAt matchAndRest 2));
+          [ (builtins.head matchAndRest) ] ++ (parseReqList (builtins.elemAt matchAndRest 2));
     in
     parseReqList requires;
 
@@ -70,10 +71,11 @@ let
   # ''
   # => [ "direnv" "paredit" ]
   parsePackagesFromUsePackage =
-    { configText
-    , alwaysEnsure ? false
-    , isOrgModeFile ? false
-    , alwaysTangle ? false
+    {
+      configText,
+      alwaysEnsure ? false,
+      isOrgModeFile ? false,
+      alwaysTangle ? false,
     }:
     let
       readFunction =
@@ -82,14 +84,17 @@ let
         else
           fromElisp;
 
-      find = item: list:
-        if list == [ ] then [ ] else
-        if builtins.head list == item then
+      find =
+        item: list:
+        if list == [ ] then
+          [ ]
+        else if builtins.head list == item then
           list
         else
           find item (builtins.tail list);
 
-      getKeywordValue = keyword: list:
+      getKeywordValue =
+        keyword: list:
         let
           keywordList = find keyword list;
         in
@@ -97,14 +102,12 @@ let
           let
             keywordValue = builtins.tail keywordList;
           in
-          if keywordValue != [ ] then
-            builtins.head keywordValue
-          else
-            true
+          if keywordValue != [ ] then builtins.head keywordValue else true
         else
           null;
 
-      isDisabled = item:
+      isDisabled =
+        item:
         let
           disabledValue = getKeywordValue ":disabled" item;
         in
@@ -117,29 +120,32 @@ let
         else
           false;
 
-      getName = item:
+      getName =
+        item:
         let
           ensureValue = getKeywordValue ":ensure" item;
           usePackageName = builtins.head (builtins.tail item);
         in
         if builtins.isString ensureValue then
-          if lib.hasPrefix ":" ensureValue then
-            usePackageName
-          else
-            ensureValue
+          if lib.hasPrefix ":" ensureValue then usePackageName else ensureValue
         else if ensureValue == true || (ensureValue == null && alwaysEnsure) then
           usePackageName
         else
           [ ];
 
-      recurse = item:
+      recurse =
+        item:
         if builtins.isList item && item != [ ] then
           let
             packageManager = builtins.head item;
           in
           if builtins.elem packageManager [ "use-package" ] then
             if !(isDisabled item) then
-              [ packageManager (getName item) ] ++ map recurse item
+              [
+                packageManager
+                (getName item)
+              ]
+              ++ map recurse item
             else
               [ ]
           else
