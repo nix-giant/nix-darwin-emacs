@@ -131,10 +131,10 @@ in
     super.lib.makeOverridable
       (mkEmacs "emacs-unstable" ../repos/emacs/unstable.json [
         # patches from https://github.com/d12frosted/homebrew-emacs-plus
-        ./patches-30/fix-window-role.patch
-        ./patches-30/poll.patch
-        ./patches-30/system-appearance.patch
-        ./patches-30/round-undecorated-frame.patch
+        ./patches-unstable/fix-window-role.patch
+        ./patches-unstable/poll.patch
+        ./patches-unstable/system-appearance.patch
+        ./patches-unstable/round-undecorated-frame.patch
       ])
       {
         withSQLite3 = true;
