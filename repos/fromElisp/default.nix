@@ -2,17 +2,16 @@
 # https://github.com/talyz/fromElisp. Don't make any changes to it
 # locally - they will be discarded on update!
 
-{
-  pkgs ? import <nixpkgs> { },
-  commentMaxLength ? 300,
-  stringMaxLength ? 3000,
-  characterMaxLength ? 50,
-  integerMaxLength ? 50,
-  floatMaxLength ? 50,
-  boolVectorMaxLength ? 50,
-  symbolMaxLength ? 50,
-  orgModeBabelCodeBlockHeaderMaxLength ? 200,
-  orgModeBabelCodeBlockArgMaxLength ? 30,
+{ pkgs ? import <nixpkgs> {}
+, commentMaxLength ? 300
+, stringMaxLength ? 3000
+, characterMaxLength ? 50
+, integerMaxLength ? 50
+, floatMaxLength ? 50
+, boolVectorMaxLength ? 50
+, symbolMaxLength ? 50
+, orgModeBabelCodeBlockHeaderMaxLength ? 200
+, orgModeBabelCodeBlockArgMaxLength ? 30
 }:
 
 with pkgs.lib;
@@ -24,29 +23,24 @@ let
   # matcher takes a string and returns the first match produced by
   # running its regex on it, or null if the match is unsuccessful,
   # but only as far in as specified by maxLength.
-  mkMatcher =
-    regex: maxLength: string:
-    let
-      substr = substring 0 maxLength string;
-      matched = match regex substr;
-    in
-    if matched != null then head matched else null;
+  mkMatcher = regex: maxLength:
+    string:
+      let
+        substr = substring 0 maxLength string;
+        matched = match regex substr;
+      in
+        if matched != null then head matched else null;
 
-  removeStrings =
-    stringsToRemove: string:
+  removeStrings = stringsToRemove: string:
     let
       len = length stringsToRemove;
       listOfNullStrings = genList (const "") len;
     in
-    replaceStrings stringsToRemove listOfNullStrings string;
+      replaceStrings stringsToRemove listOfNullStrings string;
 
   # Split a string of elisp into individual tokens and add useful
   # metadata.
-  tokenizeElisp' =
-    {
-      elisp,
-      startLineNumber ? 1,
-    }:
+  tokenizeElisp' = { elisp, startLineNumber ? 1 }:
     let
       # These are the only characters that can not be unescaped in a
       # symbol name. We match the inverse of these to get the actual
@@ -79,8 +73,7 @@ let
       matchSymbol =
         let
           symbolChar = ''([^${notInSymbol}]|\\.)'';
-        in
-        mkMatcher ''(${symbolChar}+)([${notInSymbol}]|$).*'' symbolMaxLength;
+        in mkMatcher ''(${symbolChar}+)([${notInSymbol}]|$).*'' symbolMaxLength;
 
       maxTokenLength = foldl' max 0 [
         commentMaxLength
@@ -118,8 +111,7 @@ let
       # The order of the matches is significant - matchSymbol will,
       # for example, also match numbers and characters, so we check
       # for symbols last.
-      readToken =
-        state: char:
+      readToken = state: char:
         let
           rest = substring state.pos maxTokenLength elisp;
           comment = matchComment rest;
@@ -133,394 +125,215 @@ let
           dot = matchDot rest;
           symbol = matchSymbol rest;
         in
-        if state.skip > 0 then
-          state
-          // {
-            pos = state.pos + 1;
-            skip = state.skip - 1;
-            line = if char == "\n" then state.line + 1 else state.line;
-          }
-        else if char == "\n" then
-          let
-            mod = state.line / 1000;
-            newState = {
+          if state.skip > 0 then
+            state // {
               pos = state.pos + 1;
-              line = state.line + 1;
-              inherit mod;
-            };
-          in
-          state
-          // (
-            # Force evaluation of old state every 1000 lines. Nix
-            # doesn't have a modulo builtin, so we have to save
-            # the result of an integer division and compare
-            # between runs.
-            if mod > state.mod then seq state.acc newState else newState
-          )
-        else if
-          elem char [
-            " "
-            "\t"
-            "\r"
-          ]
-        then
-          state
-          // {
-            pos = state.pos + 1;
-            inherit (state) line;
-          }
-        else if char == ";" then
-          if comment != null then
-            state
-            // {
-              pos = state.pos + 1;
-              skip = (stringLength comment) - 1;
+              skip = state.skip - 1;
+              line = if char == "\n" then state.line + 1 else state.line;
             }
-          else
-            throw "Unrecognized token on line ${toString state.line}: ${rest}"
-        else if char == "(" then
-          state
-          // {
-            acc = state.acc ++ [
-              {
-                type = "openParen";
-                value = "(";
-                inherit (state) line;
-              }
-            ];
-            pos = state.pos + 1;
-          }
-        else if char == ")" then
-          state
-          // {
-            acc = state.acc ++ [
-              {
-                type = "closeParen";
-                value = ")";
-                inherit (state) line;
-              }
-            ];
-            pos = state.pos + 1;
-          }
-        else if char == "[" then
-          state
-          // {
-            acc = state.acc ++ [
-              {
-                type = "openBracket";
-                value = "[";
-                inherit (state) line;
-              }
-            ];
-            pos = state.pos + 1;
-          }
-        else if char == "]" then
-          state
-          // {
-            acc = state.acc ++ [
-              {
-                type = "closeBracket";
-                value = "]";
-                inherit (state) line;
-              }
-            ];
-            pos = state.pos + 1;
-          }
-        else if char == "'" then
-          state
-          // {
-            acc = state.acc ++ [
-              {
-                type = "quote";
-                value = "'";
-                inherit (state) line;
-              }
-            ];
-            pos = state.pos + 1;
-          }
-        else if char == ''"'' then
-          if string != null then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "string";
-                  value = string;
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-              skip = (stringLength string) - 1;
-            }
-          else
-            throw "Unrecognized token on line ${toString state.line}: ${rest}"
-        else if char == "#" then
-          let
-            nextChar = substring 1 1 rest;
-          in
-          if nextChar == "'" then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "function";
-                  value = "#'";
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-              skip = 1;
-            }
-          else if nextChar == "&" then
-            if boolVector != null then
-              state
-              // {
-                acc = state.acc ++ [
-                  {
-                    type = "boolVector";
-                    value = boolVector;
-                    inherit (state) line;
-                  }
-                ];
+          else if char == "\n" then
+            let
+              mod = state.line / 1000;
+              newState = {
                 pos = state.pos + 1;
-                skip = (stringLength boolVector) - 1;
-              }
-            else
-              throw "Unrecognized token on line ${toString state.line}: ${rest}"
-          else if nextChar == "s" then
-            if substring 2 1 rest == "(" then
-              state
-              // {
-                acc = state.acc ++ [
-                  {
-                    type = "record";
-                    value = "#s";
-                    inherit (state) line;
-                  }
-                ];
+                line = state.line + 1;
+                inherit mod;
+              };
+            in
+              state // (
+                # Force evaluation of old state every 1000 lines. Nix
+                # doesn't have a modulo builtin, so we have to save
+                # the result of an integer division and compare
+                # between runs.
+                if mod > state.mod then
+                  seq state.acc newState
+                else
+                  newState
+              )
+          else if elem char [ " " "\t" "\r" ] then
+            state // {
+              pos = state.pos + 1;
+              inherit (state) line;
+            }
+          else if char == ";" then
+            if comment != null then
+              state // {
                 pos = state.pos + 1;
+                skip = (stringLength comment) - 1;
+              }
+            else throw "Unrecognized token on line ${toString state.line}: ${rest}"
+          else if char == "(" then
+            state // {
+              acc = state.acc ++ [{ type = "openParen"; value = "("; inherit (state) line; }];
+              pos = state.pos + 1;
+            }
+          else if char == ")" then
+            state // {
+              acc = state.acc ++ [{ type = "closeParen"; value = ")"; inherit (state) line; }];
+              pos = state.pos + 1;
+            }
+          else if char == "[" then
+            state // {
+              acc = state.acc ++ [{ type = "openBracket"; value = "["; inherit (state) line; }];
+              pos = state.pos + 1;
+            }
+          else if char == "]" then
+            state // {
+              acc = state.acc ++ [{ type = "closeBracket"; value = "]"; inherit (state) line; }];
+              pos = state.pos + 1;
+            }
+          else if char == "'" then
+            state // {
+              acc = state.acc ++ [{ type = "quote"; value = "'"; inherit (state) line; }];
+              pos = state.pos + 1;
+            }
+          else if char == ''"'' then
+            if string != null then
+              state // {
+                acc = state.acc ++ [{ type = "string"; value = string; inherit (state) line; }];
+                pos = state.pos + 1;
+                skip = (stringLength string) - 1;
+              }
+            else throw "Unrecognized token on line ${toString state.line}: ${rest}"
+          else if char == "#" then
+            let nextChar = substring 1 1 rest;
+            in
+              if nextChar == "'" then
+                state // {
+                  acc = state.acc ++ [{ type = "function"; value = "#'"; inherit (state) line; }];
+                  pos = state.pos + 1;
+                  skip = 1;
+                }
+              else if nextChar == "&" then
+                if boolVector != null then
+                  state // {
+                    acc = state.acc ++ [{ type = "boolVector"; value = boolVector; inherit (state) line; }];
+                    pos = state.pos + 1;
+                    skip = (stringLength boolVector) - 1;
+                  }
+                else throw "Unrecognized token on line ${toString state.line}: ${rest}"
+              else if nextChar == "s" then
+                if substring 2 1 rest == "(" then
+                  state // {
+                    acc = state.acc ++ [{ type = "record"; value = "#s"; inherit (state) line; }];
+                    pos = state.pos + 1;
+                    skip = 1;
+                  }
+                else throw "List must follow #s in record on line ${toString state.line}: ${rest}"
+              else if nextChar == "[" then
+                state // {
+                  acc = state.acc ++ [{ type = "byteCode"; value = "#"; inherit (state) line; }];
+                  pos = state.pos + 1;
+                }
+              else if nonBase10Integer != null then
+                state // {
+                  acc = state.acc ++ [{ type = "nonBase10Integer"; value = nonBase10Integer; inherit (state) line; }];
+                  pos = state.pos + 1;
+                  skip = (stringLength nonBase10Integer) - 1;
+                }
+              else throw "Unrecognized token on line ${toString state.line}: ${rest}"
+          else if elem char [ "+" "-" "." "0" "1" "2" "3" "4" "5" "6" "7" "8" "9" ] then
+            if integer != null then
+              state // {
+                acc = state.acc ++ [{ type = "integer"; value = integer; inherit (state) line; }];
+                pos = state.pos + 1;
+                skip = (stringLength integer) - 1;
+              }
+            else if float != null then
+              state // {
+                acc = state.acc ++ [{ type = "float"; value = float; inherit (state) line; }];
+                pos = state.pos + 1;
+                skip = (stringLength float) - 1;
+              }
+            else if dot != null then
+              state // {
+                acc = state.acc ++ [{ type = "dot"; value = dot; inherit (state) line; }];
+                pos = state.pos + 1;
+                skip = (stringLength dot) - 1;
+              }
+            else if symbol != null then
+              state // {
+                acc = state.acc ++ [{ type = "symbol"; value = symbol; inherit (state) line; }];
+                pos = state.pos + 1;
+                skip = (stringLength symbol) - 1;
+              }
+            else throw "Unrecognized token on line ${toString state.line}: ${rest}"
+          else if char == "?" then
+            if character != null then
+              state // {
+                acc = state.acc ++ [{ type = "character"; value = character; inherit (state) line; }];
+                pos = state.pos + 1;
+                skip = (stringLength character) - 1;
+              }
+            else throw "Unrecognized token on line ${toString state.line}: ${rest}"
+          else if char == "`" then
+            state // {
+              acc = state.acc ++ [{ type = "backquote"; value = "`"; inherit (state) line; }];
+              pos = state.pos + 1;
+            }
+          else if char == "," then
+            if substring 1 1 rest == "@" then
+              state // {
+                acc = state.acc ++ [{ type = "slice"; value = ",@"; inherit (state) line; }];
                 skip = 1;
+                pos = state.pos + 1;
               }
             else
-              throw "List must follow #s in record on line ${toString state.line}: ${rest}"
-          else if nextChar == "[" then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "byteCode";
-                  value = "#";
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-            }
-          else if nonBase10Integer != null then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "nonBase10Integer";
-                  value = nonBase10Integer;
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-              skip = (stringLength nonBase10Integer) - 1;
-            }
-          else
-            throw "Unrecognized token on line ${toString state.line}: ${rest}"
-        else if
-          elem char [
-            "+"
-            "-"
-            "."
-            "0"
-            "1"
-            "2"
-            "3"
-            "4"
-            "5"
-            "6"
-            "7"
-            "8"
-            "9"
-          ]
-        then
-          if integer != null then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "integer";
-                  value = integer;
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-              skip = (stringLength integer) - 1;
-            }
-          else if float != null then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "float";
-                  value = float;
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-              skip = (stringLength float) - 1;
-            }
-          else if dot != null then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "dot";
-                  value = dot;
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-              skip = (stringLength dot) - 1;
-            }
+              state // {
+                acc = state.acc ++ [{ type = "expand"; value = ","; inherit (state) line; }];
+                pos = state.pos + 1;
+              }
           else if symbol != null then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "symbol";
-                  value = symbol;
-                  inherit (state) line;
-                }
-              ];
+            state // {
+              acc = state.acc ++ [{ type = "symbol"; value = symbol; inherit (state) line; }];
               pos = state.pos + 1;
               skip = (stringLength symbol) - 1;
             }
           else
-            throw "Unrecognized token on line ${toString state.line}: ${rest}"
-        else if char == "?" then
-          if character != null then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "character";
-                  value = character;
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-              skip = (stringLength character) - 1;
-            }
-          else
-            throw "Unrecognized token on line ${toString state.line}: ${rest}"
-        else if char == "`" then
-          state
-          // {
-            acc = state.acc ++ [
-              {
-                type = "backquote";
-                value = "`";
-                inherit (state) line;
-              }
-            ];
-            pos = state.pos + 1;
-          }
-        else if char == "," then
-          if substring 1 1 rest == "@" then
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "slice";
-                  value = ",@";
-                  inherit (state) line;
-                }
-              ];
-              skip = 1;
-              pos = state.pos + 1;
-            }
-          else
-            state
-            // {
-              acc = state.acc ++ [
-                {
-                  type = "expand";
-                  value = ",";
-                  inherit (state) line;
-                }
-              ];
-              pos = state.pos + 1;
-            }
-        else if symbol != null then
-          state
-          // {
-            acc = state.acc ++ [
-              {
-                type = "symbol";
-                value = symbol;
-                inherit (state) line;
-              }
-            ];
-            pos = state.pos + 1;
-            skip = (stringLength symbol) - 1;
-          }
-        else
-          throw "Unrecognized token on line ${toString state.line}: ${rest}";
-    in
-    (builtins.foldl' readToken {
-      acc = [ ];
-      pos = 0;
-      skip = 0;
-      line = startLineNumber;
-      mod = 0;
-    } (stringToCharacters elisp)).acc;
+            throw "Unrecognized token on line ${toString state.line}: ${rest}";
+    in (builtins.foldl' readToken { acc = []; pos = 0; skip = 0; line = startLineNumber; mod = 0; } (stringToCharacters elisp)).acc;
 
-  tokenizeElisp = elisp: tokenizeElisp' { inherit elisp; };
+  tokenizeElisp = elisp:
+    tokenizeElisp' { inherit elisp; };
 
   # Produce an AST from a list of tokens produced by `tokenizeElisp`.
-  parseElisp' =
-    tokens:
+  parseElisp' = tokens:
     let
       # Convert literal value tokens in a flat list to their
       # corresponding nix representation.
-      parseValues =
-        tokens:
-        map (
-          token:
+      parseValues = tokens:
+        map (token:
           if token.type == "string" then
-            token // { value = substring 1 (stringLength token.value - 2) token.value; }
+            token // {
+              value = substring 1 (stringLength token.value - 2) token.value;
+            }
           else if token.type == "integer" then
-            token
-            // {
-              value = fromJSON (
-                removeStrings [
-                  "+"
-                  "."
-                ] token.value
-              );
+            token // {
+              value = fromJSON (removeStrings ["+" "."] token.value);
             }
           else if token.type == "symbol" && token.value == "t" then
-            token // { value = true; }
+            token // {
+              value = true;
+            }
           else if token.type == "float" then
             let
-              initial = head (
-                match "([+-]?([[:digit:]]*[.])?[[:digit:]]+(e([+-]?[[:digit:]]+|[+](INF|NaN)))?)" token.value
-              );
+              initial = head (match "([+-]?([[:digit:]]*[.])?[[:digit:]]+(e([+-]?[[:digit:]]+|[+](INF|NaN)))?)" token.value);
               isSpecial = (match "(.+(e[+](INF|NaN)))" initial) != null;
-              withoutPlus = removeStrings [ "+" ] initial;
+              withoutPlus = removeStrings ["+"] initial;
               withPrefix =
                 if substring 0 1 withoutPlus == "." then
                   "0" + withoutPlus
                 else if substring 0 2 withoutPlus == "-." then
-                  "-0" + removeStrings [ "-" ] withoutPlus
+                  "-0" + removeStrings ["-"] withoutPlus
                 else
                   withoutPlus;
             in
-            if !isSpecial && withPrefix != null then token // { value = fromJSON withPrefix; } else token
+              if !isSpecial && withPrefix != null then
+                token // {
+                  value = fromJSON withPrefix;
+                }
+              else
+                token
           else
             token
         ) tokens;
@@ -543,81 +356,59 @@ let
       # Evaluation of old state is forced with `seq` in a few places,
       # because nix otherwise keeps it around, eventually resulting in
       # a stack overflow.
-      parseCollections =
-        tokens:
+      parseCollections = tokens:
         let
-          parseToken =
-            state: token:
+          parseToken = state: token:
             let
-              openColl =
-                if token.type == "openParen" then
-                  "list"
-                else if token.type == "openBracket" then
-                  "vector"
-                else
-                  null;
-              closeColl =
-                if token.type == "closeParen" then
-                  "list"
-                else if token.type == "closeBracket" then
-                  "vector"
-                else
-                  null;
+              openColl = if token.type == "openParen" then "list" else if token.type == "openBracket" then "vector" else null;
+              closeColl = if token.type == "closeParen" then "list" else if token.type == "closeBracket" then "vector" else null;
             in
-            if openColl != null then
-              state
-              // {
-                acc = [ [ ] ] ++ seq (head state.acc) state.acc;
-                inColl = [ openColl ] ++ state.inColl;
-                depth = state.depth + 1;
-                line = [ token.line ] ++ state.line;
-              }
-            else if closeColl != null then
-              if (head state.inColl) == closeColl then
-                let
-                  outerColl = elemAt state.acc 1;
-                  currColl = {
-                    type = closeColl;
-                    value = head state.acc;
-                    line = head state.line;
-                    inherit (state) depth;
-                  };
-                  rest = tail (tail state.acc);
-                in
-                state
-                // seq state.acc {
-                  acc = [ (outerColl ++ [ currColl ]) ] ++ rest;
-                  inColl = tail state.inColl;
-                  depth = state.depth - 1;
-                  line = tail state.line;
-                }
-              else
-                throw "Unmatched ${token.type} on line ${toString token.line}"
-            else if token.type == "symbol" && token.value == "nil" then
-              let
-                currColl = head state.acc;
-                rest = tail state.acc;
-                emptyList = {
-                  type = "list";
+              if openColl != null then
+                state // {
+                  acc = [ [] ] ++ seq (head state.acc) state.acc;
+                  inColl = [ openColl ] ++ state.inColl;
                   depth = state.depth + 1;
-                  value = [ ];
-                };
-              in
-              state // seq currColl { acc = [ (currColl ++ [ emptyList ]) ] ++ rest; }
-            else
-              let
-                currColl = head state.acc;
-                rest = tail state.acc;
-              in
-              state // seq currColl { acc = [ (currColl ++ [ token ]) ] ++ rest; };
+                  line = [ token.line ] ++ state.line;
+                }
+              else if closeColl != null then
+                if (head state.inColl) == closeColl then
+                  let
+                    outerColl = elemAt state.acc 1;
+                    currColl = {
+                      type = closeColl;
+                      value = head state.acc;
+                      line = head state.line;
+                      inherit (state) depth;
+                    };
+                    rest = tail (tail state.acc);
+                  in
+                    state // seq state.acc {
+                      acc = [ (outerColl ++ [ currColl ]) ] ++ rest;
+                      inColl = tail state.inColl;
+                      depth = state.depth - 1;
+                      line = tail state.line;
+                    }
+                else
+                  throw "Unmatched ${token.type} on line ${toString token.line}"
+              else if token.type == "symbol" && token.value == "nil" then
+                let
+                  currColl = head state.acc;
+                  rest = tail state.acc;
+                  emptyList = {
+                    type = "list";
+                    depth = state.depth + 1;
+                    value = [];
+                  };
+                in
+                  state // seq currColl { acc = [ (currColl ++ [ emptyList ]) ] ++ rest; }
+              else
+                let
+                  currColl = head state.acc;
+                  rest = tail state.acc;
+                in
+                  state // seq currColl { acc = [ (currColl ++ [ token ]) ] ++ rest; };
         in
-        head
-          (builtins.foldl' parseToken {
-            acc = [ [ ] ];
-            inColl = [ null ];
-            depth = -1;
-            line = [ ];
-          } tokens).acc;
+          head (builtins.foldl' parseToken { acc = [ [] ]; inColl = [ null ]; depth = -1; line = []; } tokens).acc;
 
       # Handle dotted pair notation, a syntax where the car and cdr
       # are represented explicitly. See
@@ -630,15 +421,12 @@ let
       #
       # For example:
       # (a . (b . (c . nil))) -> (a b c)
-      parseDots =
-        tokens:
+      parseDots = tokens:
         let
-          parseToken =
-            state: token:
+          parseToken = state: token:
             if token.type == "dot" then
               if state.inList then
-                state
-                // {
+                state // {
                   dotted = true;
                   depthReduction = state.depthReduction + 1;
                 }
@@ -647,137 +435,99 @@ let
             else if isList token.value then
               let
                 collectionContents = foldl' parseToken {
-                  acc = [ ];
+                  acc = [];
                   dotted = false;
                   inList = token.type == "list";
                   inherit (state) depthReduction;
                 } token.value;
               in
-              state
-              // {
-                acc =
-                  state.acc
-                  ++ (
+                state // {
+                  acc = state.acc ++ (
                     if state.dotted then
                       collectionContents.acc
                     else
                       [
-                        (
-                          token
-                          // {
-                            value = collectionContents.acc;
-                            depth = token.depth - state.depthReduction;
-                          }
-                        )
+                        (token // {
+                          value = collectionContents.acc;
+                          depth = token.depth - state.depthReduction;
+                        })
                       ]
                   );
-                dotted = false;
-              }
+                  dotted = false;
+                }
             else
-              state // { acc = state.acc ++ [ token ]; };
+              state // {
+                acc = state.acc ++ [token];
+              };
         in
-        (foldl' parseToken {
-          acc = [ ];
-          dotted = false;
-          inList = false;
-          depthReduction = 0;
-        } tokens).acc;
+          (foldl' parseToken { acc = []; dotted = false; inList = false; depthReduction = 0; } tokens).acc;
 
-      parseQuotes =
-        tokens:
+      parseQuotes = tokens:
         let
-          parseToken =
-            state: token':
+          parseToken = state: token':
             let
               token =
                 if isList token'.value then
-                  token'
-                  // {
-                    value =
-                      (foldl' parseToken {
-                        acc = [ ];
-                        quotes = [ ];
-                      } token'.value).acc;
+                  token' // {
+                    value = (foldl' parseToken { acc = []; quotes = []; } token'.value).acc;
                   }
                 else
                   token';
             in
-            if
-              elem token.type [
-                "quote"
-                "expand"
-                "slice"
-                "backquote"
-                "function"
-                "record"
-                "byteCode"
-              ]
-            then
-              state // { quotes = [ token ] ++ state.quotes; }
-            else if state.quotes != [ ] then
-              let
-                quote = value: token: token // { inherit value; };
-                quotedValue = foldl' quote token state.quotes;
-              in
-              state
-              // {
-                acc = state.acc ++ [ quotedValue ];
-                quotes = [ ];
-              }
-            else
-              state // { acc = state.acc ++ [ token ]; };
+              if elem token.type [ "quote" "expand" "slice" "backquote" "function" "record" "byteCode" ] then
+                state // {
+                  quotes = [ token ] ++ state.quotes;
+                }
+              else if state.quotes != [] then
+                let
+                  quote = value: token:
+                    token // {
+                      inherit value;
+                    };
+                  quotedValue = foldl' quote token state.quotes;
+                in
+                  state // {
+                    acc = state.acc ++ [ quotedValue ];
+                    quotes = [];
+                  }
+              else
+                state // {
+                  acc = state.acc ++ [ token ];
+                };
         in
-        (foldl' parseToken {
-          acc = [ ];
-          quotes = [ ];
-        } tokens).acc;
+          (foldl' parseToken { acc = []; quotes = []; } tokens).acc;
     in
-    parseQuotes (parseDots (parseCollections (parseValues tokens)));
+      parseQuotes (parseDots (parseCollections (parseValues tokens)));
 
-  parseElisp = elisp: parseElisp' (tokenizeElisp elisp);
+  parseElisp = elisp:
+    parseElisp' (tokenizeElisp elisp);
 
-  fromElisp' =
-    ast:
+  fromElisp' = ast:
     let
-      readObject =
-        object:
+      readObject = object:
         if isList object.value then
           map readObject object.value
         else if object.type == "quote" then
-          [
-            "quote"
-            (readObject object.value)
-          ]
+          ["quote" (readObject object.value)]
         else if object.type == "backquote" then
-          [
-            "`"
-            (readObject object.value)
-          ]
+          ["`" (readObject object.value)]
         else if object.type == "expand" then
-          [
-            ","
-            (readObject object.value)
-          ]
+          ["," (readObject object.value)]
         else if object.type == "slice" then
-          [
-            ",@"
-            (readObject object.value)
-          ]
+          [",@" (readObject object.value)]
         else if object.type == "function" then
-          [
-            "#'"
-            (readObject object.value)
-          ]
+          ["#'" (readObject object.value)]
         else if object.type == "byteCode" then
-          [ "#" ] ++ (readObject object.value)
+          ["#"] ++ (readObject object.value)
         else if object.type == "record" then
-          [ "#s" ] ++ (readObject object.value)
+          ["#s"] ++ (readObject object.value)
         else
           object.value;
     in
-    map readObject ast;
+      map readObject ast;
 
-  fromElisp = elisp: fromElisp' (parseElisp elisp);
+  fromElisp = elisp:
+    fromElisp' (parseElisp elisp);
 
   # Parse an Org mode babel text and return a list of all code blocks
   # with metadata.
@@ -800,8 +550,7 @@ let
   # the code block's `body` attribute, until a footer is successfully
   # matched and the block is added to the list of parsed blocks,
   # `state.acc`.
-  parseOrgModeBabel =
-    text:
+  parseOrgModeBabel = text:
     let
       matchBeginCodeBlock = mkMatcher "(#[+][bB][eE][gG][iI][nN]_[sS][rR][cC])([[:space:]]+).*" orgModeBabelCodeBlockHeaderMaxLength;
       matchHeader = mkMatcher "(#[+][hH][eE][aA][dD][eE][rR][sS]?:)([[:space:]]+).*" orgModeBabelCodeBlockHeaderMaxLength;
@@ -810,8 +559,7 @@ let
       matchBeginCodeBlockLang = match "([[:blank:]]*)([[:alnum:]][[:alnum:]-]*).*";
       matchBeginCodeBlockFlags = mkMatcher "([^\n]*[\n]).*" orgModeBabelCodeBlockHeaderMaxLength;
 
-      parseToken =
-        state: char:
+      parseToken = state: char:
         let
           rest = substring state.pos orgModeBabelCodeBlockHeaderMaxLength text;
           beginCodeBlock = matchBeginCodeBlock rest;
@@ -822,219 +570,178 @@ let
 
           force = expr: seq state.pos (seq state.line expr);
         in
-        if state.skip > 0 then
-          state
-          // force {
-            pos = state.pos + 1;
-            skip = state.skip - 1;
-            line = if char == "\n" then state.line + 1 else state.line;
-            leadingWhitespace =
-              char == "\n"
-              || (
-                state.leadingWhitespace
-                && elem char [
-                  " "
-                  "\t"
-                  "\r"
-                ]
-              );
-          }
-        else if char == "#" && state.leadingWhitespace && !state.readBody && beginCodeBlock != null then
-          state
-          // {
-            pos = state.pos + 1;
-            skip = (stringLength beginCodeBlock) - 1;
-            leadingWhitespace = false;
-            readLanguage = true;
-          }
-        else if char == "#" && state.leadingWhitespace && !state.readBody && header != null then
-          state
-          // {
-            pos = state.pos + 1;
-            skip = (stringLength header) - 1;
-            leadingWhitespace = false;
-            readFlags = true;
-          }
-        else if state.readLanguage then
-          if language != null then
-            state
-            // {
-              block = state.block // {
-                language = elemAt language 1;
-              };
+          if state.skip > 0 then
+            state // force {
               pos = state.pos + 1;
-              skip = (foldl' (total: string: total + (stringLength string)) 0 language) - 1;
+              skip = state.skip - 1;
+              line = if char == "\n" then state.line + 1 else state.line;
+              leadingWhitespace = char == "\n" || (state.leadingWhitespace && elem char [ " " "\t" "\r" ]);
+            }
+          else if char == "#" && state.leadingWhitespace && !state.readBody && beginCodeBlock != null then
+            state // {
+              pos = state.pos + 1;
+              skip = (stringLength beginCodeBlock) - 1;
               leadingWhitespace = false;
-              readLanguage = false;
+              readLanguage = true;
+            }
+          else if char == "#" && state.leadingWhitespace && !state.readBody && header != null then
+            state // {
+              pos = state.pos + 1;
+              skip = (stringLength header) - 1;
+              leadingWhitespace = false;
               readFlags = true;
-              readBody = true;
             }
-          else
-            throw "Language missing or invalid for code block on line ${toString state.line}!"
-        else if state.readFlags then
-          if flags != null then
+          else if state.readLanguage then
+            if language != null then
+              state // {
+                block = state.block // {
+                  language = elemAt language 1;
+                };
+                pos = state.pos + 1;
+                skip = (foldl' (total: string: total + (stringLength string)) 0 language) - 1;
+                leadingWhitespace = false;
+                readLanguage = false;
+                readFlags = true;
+                readBody = true;
+              }
+            else throw "Language missing or invalid for code block on line ${toString state.line}!"
+          else if state.readFlags then
+            if flags != null then
+              let
+                parseFlag = state: item:
+                  let
+                    prefix = if isString item then substring 0 1 item else null;
+                  in
+                    if elem prefix [ ":" "-" "+" ] then
+                      state // {
+                        acc = state.acc // { ${item} = true; };
+                        flag = item;
+                      }
+                    else if state.flag != null then
+                      state // {
+                        acc = state.acc // { ${state.flag} = item; };
+                        flag = null;
+                      }
+                    else
+                      state;
+              in
+                state // {
+                  block = state.block // {
+                    flags =
+                      (foldl'
+                        parseFlag
+                        { acc = state.block.flags;
+                          flag = null;
+                          inherit (state) line;
+                        }
+                        (fromElisp flags)).acc;
+                    startLineNumber = state.line + 1;
+                  };
+                  pos = state.pos + 1;
+                  skip = (stringLength flags) - 1;
+                  line = if char == "\n" then state.line + 1 else state.line;
+                  leadingWhitespace = char == "\n";
+                  readFlags = false;
+                }
+            else throw "Arguments malformed for code block on line ${toString state.line}!"
+          else if char == "#" && state.leadingWhitespace && endCodeBlock != null then
+            state // {
+              acc = state.acc ++ [ state.block ];
+              block = {
+                language = null;
+                body = "";
+                flags = {};
+              };
+              pos = state.pos + 1;
+              skip = (stringLength endCodeBlock) - 1;
+              leadingWhitespace = false;
+              readBody = false;
+            }
+          else if state.readBody then
             let
-              parseFlag =
-                state: item:
-                let
-                  prefix = if isString item then substring 0 1 item else null;
-                in
-                if
-                  elem prefix [
-                    ":"
-                    "-"
-                    "+"
-                  ]
-                then
-                  state
-                  // {
-                    acc = state.acc // {
-                      ${item} = true;
-                    };
-                    flag = item;
-                  }
-                else if state.flag != null then
-                  state
-                  // {
-                    acc = state.acc // {
-                      ${state.flag} = item;
-                    };
-                    flag = null;
-                  }
-                else
-                  state;
+              mod = state.pos / 100;
+              newState = {
+                block = state.block // {
+                  body = state.block.body + char;
+                };
+                inherit mod;
+                pos = state.pos + 1;
+                line = if char == "\n" then state.line + 1 else state.line;
+                leadingWhitespace = char == "\n" || (state.leadingWhitespace && elem char [ " " "\t" "\r" ]);
+              };
             in
-            state
-            // {
-              block = state.block // {
-                flags =
-                  (foldl' parseFlag {
-                    acc = state.block.flags;
-                    flag = null;
-                    inherit (state) line;
-                  } (fromElisp flags)).acc;
-                startLineNumber = state.line + 1;
-              };
-              pos = state.pos + 1;
-              skip = (stringLength flags) - 1;
-              line = if char == "\n" then state.line + 1 else state.line;
-              leadingWhitespace = char == "\n";
-              readFlags = false;
-            }
+              if mod > state.mod then
+                state // seq state.block.body (force newState)
+              else
+                state // newState
           else
-            throw "Arguments malformed for code block on line ${toString state.line}!"
-        else if char == "#" && state.leadingWhitespace && endCodeBlock != null then
-          state
-          // {
-            acc = state.acc ++ [ state.block ];
-            block = {
-              language = null;
-              body = "";
-              flags = { };
-            };
-            pos = state.pos + 1;
-            skip = (stringLength endCodeBlock) - 1;
-            leadingWhitespace = false;
-            readBody = false;
-          }
-        else if state.readBody then
-          let
-            mod = state.pos / 100;
-            newState = {
-              block = state.block // {
-                body = state.block.body + char;
-              };
-              inherit mod;
+            state // force {
               pos = state.pos + 1;
               line = if char == "\n" then state.line + 1 else state.line;
-              leadingWhitespace =
-                char == "\n"
-                || (
-                  state.leadingWhitespace
-                  && elem char [
-                    " "
-                    "\t"
-                    "\r"
-                  ]
-                );
+              leadingWhitespace = char == "\n" || (state.leadingWhitespace && elem char [ " " "\t" "\r" ]);
             };
-          in
-          if mod > state.mod then state // seq state.block.body (force newState) else state // newState
-        else
-          state
-          // force {
-            pos = state.pos + 1;
-            line = if char == "\n" then state.line + 1 else state.line;
-            leadingWhitespace =
-              char == "\n"
-              || (
-                state.leadingWhitespace
-                && elem char [
-                  " "
-                  "\t"
-                  "\r"
-                ]
-              );
-          };
     in
-    (foldl' parseToken {
-      acc = [ ];
-      mod = 0;
-      pos = 0;
-      skip = 0;
-      line = 1;
-      block = {
-        language = null;
-        body = "";
-        flags = { };
-      };
-      leadingWhitespace = true;
-      readLanguage = false;
-      readFlags = false;
-      readBody = false;
-    } (stringToCharacters text)).acc;
+      (foldl'
+        parseToken
+        { acc = [];
+          mod = 0;
+          pos = 0;
+          skip = 0;
+          line = 1;
+          block = {
+            language = null;
+            body = "";
+            flags = {};
+          };
+          leadingWhitespace = true;
+          readLanguage = false;
+          readFlags = false;
+          readBody = false;
+        }
+        (stringToCharacters text)).acc;
 
   # Run tokenizeElisp' on all Elisp code blocks (with `:tangle yes`
   # set) from an Org mode babel text. If the block doesn't have a
   # `tangle` attribute, it's determined by `defaultArgs`.
-  tokenizeOrgModeBabelElisp' =
-    defaultArgs: text:
+  tokenizeOrgModeBabelElisp' = defaultArgs: text:
     let
-      codeBlocks = filter (
-        block:
-        let
-          tangle = toLower (block.flags.":tangle" or defaultArgs.":tangle" or "no");
-          language = toLower block.language;
-        in
-        elem language [
-          "elisp"
-          "emacs-lisp"
-        ]
-        && elem tangle [
-          "yes"
-          ''"yes"''
-        ]
-      ) (parseOrgModeBabel text);
-    in
-    foldl' (
-      result: codeBlock:
-      result
-      ++ (tokenizeElisp' {
-        elisp = codeBlock.body;
-        inherit (codeBlock) startLineNumber;
-      })
-    ) [ ] codeBlocks;
+      codeBlocks =
+        filter
+          (block:
+            let
+              tangle = toLower (block.flags.":tangle" or defaultArgs.":tangle" or "no");
+              language = toLower block.language;
+            in
+              elem language [ "elisp" "emacs-lisp" ]
+                && elem tangle [ "yes" ''"yes"'' ])
+          (parseOrgModeBabel text);
+      in
+        foldl'
+          (result: codeBlock:
+            result ++ (tokenizeElisp' {
+              elisp = codeBlock.body;
+              inherit (codeBlock) startLineNumber;
+            })
+          )
+          []
+          codeBlocks;
 
-  tokenizeOrgModeBabelElisp = tokenizeOrgModeBabelElisp' { ":tangle" = "no"; };
+  tokenizeOrgModeBabelElisp =
+    tokenizeOrgModeBabelElisp' {
+      ":tangle" = "no";
+    };
 
-  parseOrgModeBabelElisp' =
-    defaultArgs: text: parseElisp' (tokenizeOrgModeBabelElisp' defaultArgs text);
+  parseOrgModeBabelElisp' = defaultArgs: text:
+    parseElisp' (tokenizeOrgModeBabelElisp' defaultArgs text);
 
-  parseOrgModeBabelElisp = text: parseElisp' (tokenizeOrgModeBabelElisp text);
+  parseOrgModeBabelElisp = text:
+    parseElisp' (tokenizeOrgModeBabelElisp text);
 
-  fromOrgModeBabelElisp' = defaultArgs: text: fromElisp' (parseOrgModeBabelElisp' defaultArgs text);
+  fromOrgModeBabelElisp' = defaultArgs: text:
+    fromElisp' (parseOrgModeBabelElisp' defaultArgs text);
 
-  fromOrgModeBabelElisp = text: fromElisp' (parseOrgModeBabelElisp text);
+  fromOrgModeBabelElisp = text:
+    fromElisp' (parseOrgModeBabelElisp text);
 
 in
 {
