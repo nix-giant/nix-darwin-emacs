@@ -3,7 +3,7 @@
   "owner": "emacs-mirror",
   "repo": "emacs",
   "branch": "emacs-30",
-  "rev": "0a626a64c70e6842027d58dd2b52776d864cedb2",
-  "sha256": "0a4in5ifrnq168mzqwwb7ysdcj15l1kljgxax1bi0afxz3m932jz",
-  "version": "20240824.0"
+  "rev": "aa6ed7f67ec7ed08224e6ab2aab0a5b65f2bc314",
+  "sha256": "1h90s6hywn31vfx46qp0bha4k7m13ygakqv2rf1msq15lxqgb5zj",
+  "version": "20240826.0"
 }
