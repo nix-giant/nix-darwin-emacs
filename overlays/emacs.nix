@@ -35,8 +35,8 @@ let
             old.postPatch
             + ''
               substituteInPlace lisp/loadup.el \
-              --replace '(emacs-repository-get-version)' '"${repoMeta.rev}"' \
-              --replace '(emacs-repository-get-branch)' '"${repoMeta.branch}"'
+              --replace-fail '(emacs-repository-get-version)' '"${repoMeta.rev}"' \
+              --replace-fail '(emacs-repository-get-branch)' '"${repoMeta.branch}"'
             '';
         })
       )
