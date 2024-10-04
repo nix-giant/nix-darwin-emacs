@@ -20,6 +20,9 @@ This overlay doesn't provide any other Emacs packages, such as:
 
 If you need them, try to use overlay ~package~ provided by [[https://github.com/nix-community/emacs-overlay][nix-community/emacs-overlay]].
 
+** Binary cache
+Binary cache is not available.
+
 * Quick Start
 First, build it:
 #+begin_src sh
