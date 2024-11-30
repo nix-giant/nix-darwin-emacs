@@ -1,7 +1,7 @@
-From 8ec8ac02f54d80ab16cec99e7b9e59bc06376154 Mon Sep 17 00:00:00 2001
+From 3a5d34b44075ddde1be6e5fe330465cfd7805094 Mon Sep 17 00:00:00 2001
 From: Boris Buliga <boris@d12frosted.io>
-Date: Sat, 8 Oct 2022 13:21:21 +0300
-Subject: [PATCH] provide a way to make undecorated frame with round corners
+Date: Tue, 26 Nov 2024 23:46:35 +0800
+Subject: [PATCH] provide a way to make undecorated frame with round corners (fixed version for Emacs 31)
 
 ---
  src/frame.c  |  3 +++
@@ -12,10 +12,10 @@ Subject: [PATCH] provide a way to make undecorated frame with round corners
  5 files changed, 69 insertions(+), 1 deletion(-)
 
 diff --git a/src/frame.c b/src/frame.c
-index 91b9bec82c..6a3db12054 100644
+index 7f4bf274ad9..d98fb10f756 100644
 --- a/src/frame.c
 +++ b/src/frame.c
-@@ -970,6 +970,7 @@ make_frame (bool mini_p)
+@@ -972,6 +972,7 @@ make_frame (bool mini_p)
    f->horizontal_scroll_bars = false;
    f->want_fullscreen = FULLSCREEN_NONE;
    f->undecorated = false;
@@ -23,7 +23,7 @@ index 91b9bec82c..6a3db12054 100644
    f->no_special_glyphs = false;
  #ifndef HAVE_NTGUI
    f->override_redirect = false;
-@@ -3909,6 +3910,7 @@ static const struct frame_parm_table frame_parms[] =
+@@ -4044,6 +4045,7 @@ static const struct frame_parm_table frame_parms[] =
    {"tool-bar-position",		SYMBOL_INDEX (Qtool_bar_position)},
    {"inhibit-double-buffering",  SYMBOL_INDEX (Qinhibit_double_buffering)},
    {"undecorated",		SYMBOL_INDEX (Qundecorated)},
@@ -31,7 +31,7 @@ index 91b9bec82c..6a3db12054 100644
    {"parent-frame",		SYMBOL_INDEX (Qparent_frame)},
    {"skip-taskbar",		SYMBOL_INDEX (Qskip_taskbar)},
    {"no-focus-on-map",		SYMBOL_INDEX (Qno_focus_on_map)},
-@@ -6052,6 +6054,7 @@ syms_of_frame (void)
+@@ -6305,6 +6307,7 @@ syms_of_frame (void)
    DEFSYM (Qicon, "icon");
    DEFSYM (Qminibuffer, "minibuffer");
    DEFSYM (Qundecorated, "undecorated");
@@ -40,10 +40,10 @@ index 91b9bec82c..6a3db12054 100644
    DEFSYM (Qparent_frame, "parent-frame");
    DEFSYM (Qskip_taskbar, "skip-taskbar");
 diff --git a/src/frame.h b/src/frame.h
-index 458b6257e4..2cab723c00 100644
+index 1d920d1a6bc..bf441c6bb06 100644
 --- a/src/frame.h
 +++ b/src/frame.h
-@@ -396,6 +396,9 @@ struct frame
+@@ -468,6 +468,9 @@ struct frame
    /* True if this is an undecorated frame.  */
    bool_bf undecorated : 1;
  
@@ -53,7 +53,7 @@ index 458b6257e4..2cab723c00 100644
  #ifndef HAVE_NTGUI
    /* True if this is an override_redirect frame.  */
    bool_bf override_redirect : 1;
-@@ -1079,6 +1082,7 @@ default_pixels_per_inch_y (void)
+@@ -1245,6 +1248,7 @@ default_pixels_per_inch_y (void)
  
  #if defined (HAVE_WINDOW_SYSTEM)
  #define FRAME_UNDECORATED(f) ((f)->undecorated)
@@ -61,7 +61,7 @@ index 458b6257e4..2cab723c00 100644
  #ifdef HAVE_NTGUI
  #define FRAME_OVERRIDE_REDIRECT(f) ((void) (f), 0)
  #else
-@@ -1105,6 +1109,7 @@ default_pixels_per_inch_y (void)
+@@ -1271,6 +1275,7 @@ default_pixels_per_inch_y (void)
  #endif
  #else /* not HAVE_WINDOW_SYSTEM */
  #define FRAME_UNDECORATED(f) ((void) (f), 0)
@@ -70,18 +70,18 @@ index 458b6257e4..2cab723c00 100644
  #define FRAME_PARENT_FRAME(f) ((void) (f), NULL)
  #define FRAME_SKIP_TASKBAR(f) ((void) (f), 0)
 diff --git a/src/nsfns.m b/src/nsfns.m
-index 2699cf37a5..dd3c9564f8 100644
+index 3c012ca8f05..1fdefaacd77 100644
 --- a/src/nsfns.m
 +++ b/src/nsfns.m
-@@ -1049,6 +1049,7 @@ Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
-   0, /* x_set_tool_bar_position */
-   0, /* x_set_inhibit_double_buffering */
+@@ -1102,6 +1102,7 @@ Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
+   ns_set_tool_bar_position,
+   ns_set_inhibit_double_buffering,
    ns_set_undecorated,
 +  ns_set_undecorated_round,
    ns_set_parent_frame,
    0, /* x_set_skip_taskbar */
    ns_set_no_focus_on_map,
-@@ -1376,6 +1377,11 @@ Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
+@@ -1405,6 +1406,11 @@ Turn the input menu (an NSMenu) into a lisp list for tracking on lisp side.
    FRAME_UNDECORATED (f) = !NILP (tem) && !EQ (tem, Qunbound);
    store_frame_param (f, Qundecorated, FRAME_UNDECORATED (f) ? Qt : Qnil);
  
@@ -94,10 +94,10 @@ index 2699cf37a5..dd3c9564f8 100644
    tem = gui_display_get_arg (dpyinfo, parms, Qns_appearance, NULL, NULL,
                               RES_TYPE_SYMBOL);
 diff --git a/src/nsterm.h b/src/nsterm.h
-index 2a4c7571a3..5604d02407 100644
+index 6c67653705e..f308b3443d9 100644
 --- a/src/nsterm.h
 +++ b/src/nsterm.h
-@@ -1227,6 +1227,8 @@ extern void ns_make_frame_invisible (struct frame *f);
+@@ -1226,6 +1226,8 @@ extern void ns_make_frame_invisible (struct frame *f);
  extern void ns_iconify_frame (struct frame *f);
  extern void ns_set_undecorated (struct frame *f, Lisp_Object new_value,
                                  Lisp_Object old_value);
@@ -107,10 +107,10 @@ index 2a4c7571a3..5604d02407 100644
                                   Lisp_Object old_value);
  extern void ns_set_no_focus_on_map (struct frame *f, Lisp_Object new_value,
 diff --git a/src/nsterm.m b/src/nsterm.m
-index 82fe58e90e..f132a9591d 100644
+index 205b1621399..1e1abef2280 100644
 --- a/src/nsterm.m
 +++ b/src/nsterm.m
-@@ -1798,6 +1798,44 @@ Hide the window (X11 semantics)
+@@ -1810,6 +1810,44 @@ Hide the window (X11 semantics)
      }
  }
  
@@ -155,7 +155,7 @@ index 82fe58e90e..f132a9591d 100644
  void
  ns_set_parent_frame (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
  /* --------------------------------------------------------------------------
-@@ -9039,6 +9077,11 @@ - (instancetype) initWithEmacsFrame: (struct frame *) f
+@@ -9272,6 +9310,11 @@ - (instancetype) initWithEmacsFrame: (struct frame *) f
  		 | NSWindowStyleMaskMiniaturizable
  		 | NSWindowStyleMaskClosable);
  
@@ -167,7 +167,7 @@ index 82fe58e90e..f132a9591d 100644
    last_drag_event = nil;
  
    width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, f->text_cols);
-@@ -9122,13 +9165,22 @@ - (instancetype) initWithEmacsFrame: (struct frame *) f
+@@ -9355,13 +9398,22 @@ - (instancetype) initWithEmacsFrame: (struct frame *) f
  #endif
      }
  
@@ -186,10 +186,11 @@ index 82fe58e90e..f132a9591d 100644
  
  - (void)createToolbar: (struct frame *)f
  {
--  if (FRAME_UNDECORATED (f) || !FRAME_EXTERNAL_TOOL_BAR (f) || [self toolbar] != nil)
-+  if (FRAME_UNDECORATED (f) || FRAME_UNDECORATED_ROUND (f) || !FRAME_EXTERNAL_TOOL_BAR (f) || [self toolbar] != nil)
-     return;
- 
-   EmacsView *view = (EmacsView *)FRAME_NS_VIEW (f);
+-  if (FRAME_UNDECORATED (f)
++  if (FRAME_UNDECORATED (f) || FRAME_UNDECORATED_ROUND (f)
+       || [self styleMask] == NSWindowStyleMaskBorderless
+       || !FRAME_EXTERNAL_TOOL_BAR (f)
+       || [self toolbar] != nil)
 -- 
-2.36.1
+2.47.0
+

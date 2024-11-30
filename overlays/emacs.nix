@@ -130,7 +130,6 @@ in
   emacs-unstable = mkEmacs "emacs-unstable" ../repos/emacs/unstable.json [
     # patches from https://github.com/d12frosted/homebrew-emacs-plus
     ./patches-unstable/fix-window-role.patch
-    ./patches-unstable/poll.patch
     ./patches-unstable/system-appearance.patch
     ./patches-unstable/round-undecorated-frame.patch
   ] { };
@@ -138,7 +137,6 @@ in
   emacs-30 = mkEmacs "emacs-30" ../repos/emacs/30.json [
     # patches from https://github.com/d12frosted/homebrew-emacs-plus
     ./patches-30/fix-window-role.patch
-    ./patches-30/poll.patch
     ./patches-30/system-appearance.patch
     ./patches-30/round-undecorated-frame.patch
   ] { };
@@ -146,7 +144,6 @@ in
   emacs-29 = mkEmacs "emacs-29" ../repos/emacs/29.json [
     # patches from https://github.com/d12frosted/homebrew-emacs-plus
     ./patches-29/fix-window-role.patch
-    ./patches-29/poll.patch
     ./patches-29/system-appearance.patch
     ./patches-29/round-undecorated-frame.patch
   ] { };
