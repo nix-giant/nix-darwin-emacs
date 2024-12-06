@@ -62,11 +62,14 @@ let
                         "${super.lib.getLib self.stdenv.cc.cc.libgcc}/lib"
                       ]
                       ++ [
-
                         # Executable paths necessary for compilation (ld, as):
                         "${super.lib.getBin self.stdenv.cc.cc}/bin"
                         "${super.lib.getBin self.stdenv.cc.bintools}/bin"
                         "${super.lib.getBin self.stdenv.cc.bintools.bintools}/bin"
+                      ]
+                      ++ super.lib.optionals (self ? apple-sdk) [
+                        # The linker needs to know where to find libSystem on Darwin.
+                        "${self.apple-sdk.sdkroot}/usr/lib"
                       ]
                     )
                   )
