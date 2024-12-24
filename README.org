@@ -142,8 +142,11 @@ For example, =emacsWithPackagesFromUsePackage= adds packages which are required 
       alwaysTangle = true;
 
       # Optionally provide extra packages not in the configuration file.
+      # This can also include extra executables to be run by Emacs (linters,
+      # language servers, formatters, etc)
       extraEmacsPackages = epkgs: [
         epkgs.cask
+        pkgs.shellcheck
       ];
 
       # Optionally override derivations.
