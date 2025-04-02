@@ -7,10 +7,14 @@ cd $SCRIPTPATH
 
 curl -O https://raw.githubusercontent.com/talyz/fromElisp/master/default.nix
 
-cat <<EOF > default.nix
+if [ $? -eq 0 ]; then
+    cat <<EOF > default.nix
 # WARNING: This file was automatically imported from
 # https://github.com/talyz/fromElisp. Don't make any changes to it
 # locally - they will be discarded on update!
 
 $(cat default.nix)
 EOF
+else
+    exit 1
+fi
