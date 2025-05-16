@@ -45,12 +45,12 @@ $ ls ./result
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-<version>-darwin"; # replace <version>
 
     darwin = {
-      url = "github:lnl7/nix-darwin";
+      url = "github:nix-darwin/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     darwin-emacs = {
-      url = "github:c4710n/nix-darwin-emacs";
+      url = "github:nix-giant/nix-darwin-emacs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
