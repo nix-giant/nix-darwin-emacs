@@ -89,7 +89,7 @@ $ ls ./result
 }
 #+end_src
 
-* Extra library functionality
+* Extra functions
 This overlay comes with extra functions to generate an Emacs closure from various types of dependency declaration. (These are abstractions on top of =emacsWithPackages=.)
 
 For example, =emacsWithPackagesFromUsePackage= adds packages which are required in a user's config via =use-package=.
@@ -192,10 +192,43 @@ pkgs.mkShell {
 }
 #+end_src
 
+** About =:pin= keyword of =use-package=
+As you know, =:pin= keyword of =use-package= pins a package to a specific archive. This repo has support of this feature. For example:
+
+#+begin_src emacs-lisp
+(use-package magit
+  :ensure t
+  :pin melpa-stable)
+#+end_src
+
+Above code will install =magit= from =melpa-stable= archive.
+
+Following archives are supported:
+
+- =gnu=, which refers to =epkgs.elpaPackages=
+- =gnu-devel=, which refers to =epkgs.elpaDevelPackages=
+- =nongnu=, which refers to =epkgs.nongnuPackages=
+- =nongnu-devel=, which refers to =epkgs.nongnuDevelPackages=
+- =melpa=, which refers to =epkgs.melpaPackages=
+- =melpa-stable=, which refers to =epkgs.melpaStablePackages=
+
+And, to avoid the errors of missing archives, it is better to set:
+
+#+begin_src emacs-lisp
+;; To prevent accidentally installing packages directly instead of through Nix,
+;; nil is used as the addresses of archives.
+(setq package-archives '(("gnu"          . nil)
+                         ("gnu-devel"    . nil)
+                         ("nongnu"       . nil)
+                         ("nongnu-devel" . nil)
+                         ("melpa"        . nil)
+                         ("melpa-stable" . nil)))
+#+end_src
+
 * Testing
 
 #+begin_src console
-$ nix build .#test-build-emacs
+$ nix build '.#test-build-emacs'
 #+end_src
 
 * License
