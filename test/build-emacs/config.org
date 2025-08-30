@@ -1,0 +1,8 @@
+Here is an example config.
+
+#+begin_src emacs-lisp
+(use-package magit
+  :ensure t
+  :pin melpa-stable
+)
+#+end_src

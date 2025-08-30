@@ -192,5 +192,11 @@ pkgs.mkShell {
 }
 #+end_src
 
+* Testing
+
+#+begin_src console
+$ nix build .#test-build-emacs
+#+end_src
+
 * License
 MIT
