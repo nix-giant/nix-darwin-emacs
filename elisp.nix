@@ -14,6 +14,8 @@ in
   defaultInitFile ? false,
   # emulate `use-package-always-ensure` behavior (defaulting to false)
   alwaysEnsure ? false,
+  # emulate `use-package-always-pin` behavior (defaulting to false)
+  alwaysPin ? false,
   # emulate `#+PROPERTY: header-args:emacs-lisp :tangle yes`
   alwaysTangle ? false,
   extraEmacsPackages ? epkgs: [ ],
@@ -47,6 +49,7 @@ let
       isOrgModeFile
       alwaysTangle
       alwaysEnsure
+      alwaysPin
       ;
   };
   emacsPackages = (pkgs.emacsPackagesFor package).overrideScope (
@@ -61,7 +64,22 @@ in
 emacsWithPackages (
   epkgs:
   let
-    usePkgs = map (name: epkgs.${name} or (mkPackageError name)) packages;
+    pkgArchives = {
+      "gnu" = "elpaPackages";
+      "gnu-devel" = "elpaDevelPackages";
+      "nongnu" = "nongnuPackages";
+      "nongnu-devel" = "nongnuDevelPackages";
+      "melpa" = "melpaPackages";
+      "melpa-stable" = "melpaStablePackages";
+    };
+    usePkgs = map (
+      pkg:
+      if pkg.archive != null then
+        epkgs.${pkgArchives.${pkg.archive}}.${pkg.name}
+          or (mkPackageError "${pkgArchives.${pkg.archive}}.${pkg.name}")
+      else
+        epkgs.${pkg.name} or (mkPackageError pkg.name)
+    ) packages;
     extraPkgs = extraEmacsPackages epkgs;
     defaultInitFilePkg =
       if !((builtins.isBool defaultInitFile) || (lib.isDerivation defaultInitFile)) then
