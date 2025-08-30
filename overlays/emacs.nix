@@ -31,13 +31,11 @@ let
 
           patches = [ ];
 
-          postPatch =
-            old.postPatch
-            + ''
-              substituteInPlace lisp/loadup.el \
-              --replace-fail '(emacs-repository-get-version)' '"${repoMeta.rev}"' \
-              --replace-fail '(emacs-repository-get-branch)' '"${repoMeta.branch}"'
-            '';
+          postPatch = old.postPatch + ''
+            substituteInPlace lisp/loadup.el \
+            --replace-fail '(emacs-repository-get-version)' '"${repoMeta.rev}"' \
+            --replace-fail '(emacs-repository-get-branch)' '"${repoMeta.branch}"'
+          '';
         })
       )
 
@@ -97,11 +95,9 @@ let
       (
         drv:
         drv.overrideAttrs (old: {
-          postInstall =
-            old.postInstall
-            + ''
-              cp ${./icons/Emacs.icns} $out/Applications/Emacs.app/Contents/Resources/Emacs.icns
-            '';
+          postInstall = old.postInstall + ''
+            cp ${./icons/Emacs.icns} $out/Applications/Emacs.app/Contents/Resources/Emacs.icns
+          '';
         })
       )
 
@@ -132,7 +128,6 @@ in
 {
   emacs-unstable = mkEmacs "emacs-unstable" ../repos/emacs/unstable.json [
     # patches from https://github.com/d12frosted/homebrew-emacs-plus
-    ./patches-unstable/fix-window-role.patch
     ./patches-unstable/system-appearance.patch
     ./patches-unstable/round-undecorated-frame.patch
   ] { };
