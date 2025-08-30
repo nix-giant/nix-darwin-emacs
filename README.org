@@ -131,6 +131,12 @@ For example, =emacsWithPackagesFromUsePackage= adds packages which are required 
 
       # By default emacsWithPackagesFromUsePackage will only pull in
       # packages with `:ensure`, `:ensure t` or `:ensure <package name>`.
+      # Setting `alwaysEnsure` to `true` emulates `use-package-always-ensure`
+      # and pulls in all use-package references not explicitly disabled via
+      # `:ensure nil` or `:disabled`.
+      # Note that this is NOT recommended unless you've actually set
+      # `use-package-always-ensure` to `t` in your config.
+      alwaysEnsure = true;
 
       # For Org mode babel files, by default only code blocks with
       # `:tangle yes` are considered. Setting `alwaysTangle` to `true`
