@@ -115,19 +115,19 @@ let
         else
           null;
 
-      isDisabled =
+      isEnabled =
         item:
         let
           disabledValue = getKeywordValue ":disabled" item;
         in
         if disabledValue == [ ] then
-          false
-        else if builtins.isBool disabledValue then
-          disabledValue
-        else if builtins.isString disabledValue then
           true
+        else if builtins.isBool disabledValue then
+          !disabledValue
+        else if builtins.isString disabledValue then
+          false
         else
-          false;
+          true;
 
       getName =
         item:
@@ -135,12 +135,14 @@ let
           ensureValue = getKeywordValue ":ensure" item;
           usePackageName = builtins.head (builtins.tail item);
         in
-        if builtins.isString ensureValue then
-          if lib.hasPrefix ":" ensureValue then usePackageName else ensureValue
-        else if ensureValue == true || (ensureValue == null && alwaysEnsure) then
+        if ensureValue == null then
+          (if alwaysEnsure then usePackageName else null)
+        else if ensureValue == true then
           usePackageName
+        else if builtins.isString ensureValue then
+          (if lib.hasPrefix ":" ensureValue then usePackageName else ensureValue)
         else
-          [ ];
+          null;
 
       getArchive =
         item:
@@ -164,29 +166,38 @@ let
 
       recurse =
         item:
-        if builtins.isList item && item != [ ] then
-          let
-            packageManager = builtins.head item;
-          in
-          if builtins.elem packageManager [ "use-package" ] then
-            if !(isDisabled item) then
-              [
-                {
-                  name = packageManager;
-                  archive = null;
-                }
-                {
-                  name = (getName item);
-                  archive = (getArchive item);
-                }
-              ]
-              ++ map recurse item
+        (
+          if builtins.isList item && item != [ ] then
+            let
+              packageManager = builtins.head item;
+            in
+            if builtins.elem packageManager [ "use-package" ] then
+              if (isEnabled item) then
+                [
+                  {
+                    name = packageManager;
+                    archive = null;
+                  }
+                ]
+                ++ (
+                  let
+                    name = getName item;
+                  in
+                  lib.optionals (name != null) [
+                    {
+                      name = name;
+                      archive = getArchive item;
+                    }
+                  ]
+                )
+                ++ map recurse item
+              else
+                [ ]
             else
-              [ ]
+              map recurse item
           else
-            map recurse item
-        else
-          [ ];
+            [ ]
+        );
     in
     lib.flatten (map recurse (readFunction configText));
 
