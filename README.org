@@ -205,7 +205,7 @@ As you know, =:pin= keyword of =use-package= pins a package to a specific archiv
   :pin melpa-stable)
 #+end_src
 
-Above code will install =magit= from =melpa-stable= archive.
+Above code will install =magit= from =epkgs.melpaStablePackages=.
 
 Following archives are supported:
 
