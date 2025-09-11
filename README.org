@@ -31,6 +31,10 @@ $ nix build .#emacs-unstable
 
 #+begin_quote
 This repo can't guarantee =emacs-unstable= will be built successfully.
+
+This typically occurs because =emacs-unstable= updates very frequently, but the patches from =homebrew-emacs-plus= are incompatible with it. You could try syncing =overlays/unstable-patches= with the patches provided by =homebrew-emacs-plus/patches/emacs-31= (pull requests are welcome).
+
+As I normally use =emacs-30=, I don't update =overlays/unstable-patches= very promptly. ;(
 #+end_quote
 
 Then, explore the directory =result=:
