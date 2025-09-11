@@ -24,9 +24,9 @@ Binary cache is not available.
 * Quick Start
 First, build it:
 #+begin_src sh
-$ nix build .#emacs-29
-$ nix build .#emacs-30
-$ nix build .#emacs-unstable
+$ nix build '.#emacs-29'
+$ nix build '.#emacs-30'
+$ nix build '.#emacs-unstable'
 #+end_src
 
 #+begin_quote
