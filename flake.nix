@@ -2,7 +2,7 @@
   description = "A nix overlay for nearly stable Emacs on Darwin.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-25.05-darwin";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
