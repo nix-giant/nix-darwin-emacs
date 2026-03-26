@@ -29,8 +29,6 @@ let
             ]
           );
 
-          patches = [ ];
-
           postPatch = old.postPatch + ''
             substituteInPlace lisp/loadup.el \
             --replace-fail '(emacs-repository-get-version)' '"${repoMeta.rev}"' \
