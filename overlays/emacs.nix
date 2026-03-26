@@ -84,6 +84,7 @@ in
     # patches from https://github.com/d12frosted/homebrew-emacs-plus
     ./patches-unstable/system-appearance.patch
     ./patches-unstable/round-undecorated-frame.patch
+    ./patches-unstable/adjust-ns-init-colors.patch
   ] { };
 
   emacs-30 = mkEmacs "emacs-30" ../repos/emacs/30.json [
