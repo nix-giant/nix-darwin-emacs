@@ -39,50 +39,6 @@ let
         })
       )
 
-      # fix native compiler error
-      (
-        drv:
-        drv.overrideAttrs (old: {
-          postPatch =
-            old.postPatch
-            + (super.lib.optionalString ((old ? NATIVE_FULL_AOT) || (old ? env.NATIVE_FULL_AOT)) (
-              let
-                backendPath = (
-                  super.lib.concatStringsSep " " (
-                    builtins.map (x: ''\"-B${x}\"'') (
-                      [
-                        # Paths necessary so the JIT compiler finds its libraries:
-                        "${super.lib.getLib self.libgccjit}/lib"
-                        "${super.lib.getLib self.libgccjit}/lib/gcc"
-                        "${super.lib.getLib self.stdenv.cc.libc}/lib"
-                      ]
-                      ++ super.lib.optionals (self.stdenv.cc ? cc.libgcc) [
-                        "${super.lib.getLib self.stdenv.cc.cc.libgcc}/lib"
-                      ]
-                      ++ [
-                        # Executable paths necessary for compilation (ld, as):
-                        "${super.lib.getBin self.stdenv.cc.cc}/bin"
-                        "${super.lib.getBin self.stdenv.cc.bintools}/bin"
-                        "${super.lib.getBin self.stdenv.cc.bintools.bintools}/bin"
-                      ]
-                      ++ super.lib.optionals (self ? apple-sdk) [
-                        # The linker needs to know where to find libSystem on Darwin.
-                        "${self.apple-sdk.sdkroot}/usr/lib"
-                      ]
-                    )
-                  )
-                );
-              in
-              ''
-                substituteInPlace lisp/emacs-lisp/comp.el --replace-fail \
-                  "(defcustom comp-libgccjit-reproducer nil" \
-                  "(setq native-comp-driver-options '(${backendPath}))
-                   (defcustom comp-libgccjit-reproducer nil"
-              ''
-            ));
-        })
-      )
-
       # accept patches
       (
         drv:
