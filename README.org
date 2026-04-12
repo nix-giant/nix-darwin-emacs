@@ -3,6 +3,9 @@
 A nix overlay for bleeding edge and nearly stable Emacs on Darwin (the heart of macOS).
 
 * Breaking changes
+** change default branch
+Change default branch from =master= to =main=.
+
 ** Remove org-mode related features
 - remove the support of using org files in =config=.
 - remove =alwaysTangle=.
