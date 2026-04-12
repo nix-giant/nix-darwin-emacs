@@ -16,21 +16,12 @@ in
   alwaysEnsure ? false,
   # emulate `use-package-always-pin` behavior (defaulting to false)
   alwaysPin ? false,
-  # emulate `#+PROPERTY: header-args:emacs-lisp :tangle yes`
-  alwaysTangle ? false,
   extraEmacsPackages ? epkgs: [ ],
   package ? pkgs.emacs-unstable,
   override ? (self: super: { }),
 }:
 let
   configType = config: if (lib.strings.isStorePath config) then "path" else (builtins.typeOf config);
-
-  isOrgModeFile =
-    let
-      ext = lib.last (builtins.split "\\." (builtins.toString config));
-      type = configType config;
-    in
-    type == "path" && ext == "org";
 
   configText =
     let
@@ -46,8 +37,6 @@ let
   packages = parse.parsePackagesFromUsePackage {
     inherit
       configText
-      isOrgModeFile
-      alwaysTangle
       alwaysEnsure
       alwaysPin
       ;

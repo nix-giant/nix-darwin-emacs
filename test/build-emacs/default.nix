@@ -1,6 +1,5 @@
 { pkgs, ... }:
 pkgs.emacsWithPackagesFromUsePackage {
-  config = ./config.org;
+  config = ./config.el;
   package = pkgs.emacs-30;
-  alwaysTangle = true;
 }

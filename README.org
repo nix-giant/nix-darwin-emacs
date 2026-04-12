@@ -2,6 +2,11 @@
 
 A nix overlay for bleeding edge and nearly stable Emacs on Darwin (the heart of macOS).
 
+* Breaking changes
+** Remove org-mode related features
+- remove the support of using org files in =config= option.
+- remove =alwaysTangle= option.
+
 * About this overlay
 ** Emacs
 This overlay provides packages =emacs-*= which is:
@@ -103,35 +108,25 @@ For example, =emacsWithPackagesFromUsePackage= adds packages which are required 
 {
   environment.systemPackages = [
     (pkgs.emacsWithPackagesFromUsePackage {
-      # Emacs config file.
-      #
-      # Supported formats:
-      # + elisp source code - `*.el`
-      # + org-mode babel files - `*.org`
-      #
-      # Note:
-      # Config files cannot contain unicode characters, since they're being parsed in nix,
-      # which lacks unicode support.
-      #
-      # elisp source code
-      config = ./emacs.el;
-
-      # or, org-mode babel files
-      # config = ./emacs.org;
-
-      # Whether to include your config as a default init file.
-      # If being bool, the value of config is used.
-      # Its value can also be a derivation like this if you want to do some
-      # substitution:
-      #   defaultInitFile = pkgs.substituteAll {
-      #     name = "default.el";
-      #     src = ./emacs.el;
-      #     inherit (config.xdg) configHome dataHome;
-      #   };
-      defaultInitFile = true;
-
       # Package is optional, defaults to pkgs.emacs-unstable
       package = pkgs.emacs-29;
+
+      # Emacs config
+      #
+      # Supported formats:
+      # + Emacs Lisp source file, for example: config = ./emacs.el;
+      # + Emacs Lisp string, for example: config = ''(use-package foo :ensure t)'';
+      #
+      # Note:
+      # The config must be ASCII-only. Nix's string parser does not support unicode,
+      # so any non-ASCII characters will cause a parse error.
+      config = ./config.el;
+
+      # By default, the config is only for collecting the information of required
+      # packages, the final result doesn't bundle the config.
+      #
+      # To bundle the config into the final result, set defaultInitFile to true.
+      defaultInitFile = true;
 
       # By default emacsWithPackagesFromUsePackage will only pull in
       # packages with `:ensure`, `:ensure t` or `:ensure <package name>`.
@@ -149,15 +144,6 @@ For example, =emacsWithPackagesFromUsePackage= adds packages which are required 
       # Note that this is NOT recommended unless you've actually set
       # `use-package-always-pin` to `"gnu"` in your config.
       alwaysPin = "gnu";
-
-      # For Org mode babel files, by default only code blocks with
-      # `:tangle yes` are considered. Setting `alwaysTangle` to `true`
-      # will include all code blocks missing the `:tangle` argument,
-      # defaulting it to `yes`.
-      # Note that this is NOT recommended unless you have something like
-      # `#+PROPERTY: header-args:emacs-lisp :tangle yes` in your config,
-      # which defaults `:tangle` to `yes`.
-      alwaysTangle = true;
 
       # Optionally provide extra packages not in the configuration file.
       # This can also include extra executables to be run by Emacs (linters,
