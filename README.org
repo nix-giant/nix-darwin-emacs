@@ -4,8 +4,12 @@ A nix overlay for bleeding edge and nearly stable Emacs on Darwin (the heart of 
 
 * Breaking changes
 ** Remove org-mode related features
-- remove the support of using org files in =config= option.
-- remove =alwaysTangle= option.
+- remove the support of using org files in =config=.
+- remove =alwaysTangle=.
+
+** Revamp =defaultInitFile=
+- change =defaultInitFile= to =configAsDefaultInitFile=.
+- =configAsDefaultInitFile= only accepts bool value.
 
 * About this overlay
 ** Emacs
@@ -125,8 +129,8 @@ For example, =emacsWithPackagesFromUsePackage= adds packages which are required 
       # By default, the config is only for collecting the information of required
       # packages, the final result doesn't bundle the config.
       #
-      # To bundle the config into the final result, set defaultInitFile to true.
-      defaultInitFile = true;
+      # To bundle the config into the final result as the default init file.
+      configAsDefaultInitFile = true;
 
       # By default emacsWithPackagesFromUsePackage will only pull in
       # packages with `:ensure`, `:ensure t` or `:ensure <package name>`.

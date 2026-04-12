@@ -1,5 +1,6 @@
 { pkgs, ... }:
 pkgs.emacsWithPackagesFromUsePackage {
-  config = ./config.el;
   package = pkgs.emacs-30;
+  config = ./config.el;
+  configAsDefaultInitFile = true;
 }

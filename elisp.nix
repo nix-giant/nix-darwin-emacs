@@ -10,11 +10,11 @@ let
 in
 {
   config,
-  # bool to use the value of config or a derivation whose name is default.el
-  defaultInitFile ? false,
-  # emulate `use-package-always-ensure` behavior (defaulting to false)
+  # use config as the default init file
+  configAsDefaultInitFile ? false,
+  # emulate `use-package-always-ensure` behavior
   alwaysEnsure ? false,
-  # emulate `use-package-always-pin` behavior (defaulting to false)
+  # emulate `use-package-always-pin` behavior
   alwaysPin ? false,
   extraEmacsPackages ? epkgs: [ ],
   package ? pkgs.emacs-unstable,
@@ -71,27 +71,23 @@ emacsWithPackages (
     ) packages;
     extraPkgs = extraEmacsPackages epkgs;
     defaultInitFilePkg =
-      if !((builtins.isBool defaultInitFile) || (lib.isDerivation defaultInitFile)) then
-        throw "defaultInitFile must be bool or derivation"
-      else if defaultInitFile == false then
-        null
-      else
+      if configAsDefaultInitFile == true then
         let
-          # name of the default init file must be default.el according to elisp manual
-          defaultInitFileName = "default.el";
+          # the filename must be default.el according to elisp manual
+          filename = "default.el";
         in
         epkgs.trivialBuild {
-          pname = "default";
-          src =
-            if defaultInitFile == true then
-              pkgs.writeText defaultInitFileName configText
-            else if defaultInitFile.name == defaultInitFileName then
-              defaultInitFile
-            else
-              throw "name of defaultInitFile must be ${defaultInitFileName}";
-          version = "0.1.0";
+          pname = "default-init-file";
+          version = "1";
+          src = pkgs.writeText filename configText;
           packageRequires = usePkgs ++ extraPkgs;
-        };
+        }
+
+      else if configAsDefaultInitFile == false then
+        null
+      else
+        throw "configAsDefaultInitFile must be bool";
+
   in
   usePkgs ++ extraPkgs ++ [ defaultInitFilePkg ]
 )
