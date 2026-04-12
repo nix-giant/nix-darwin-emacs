@@ -7,6 +7,32 @@ A nix overlay for bleeding edge and nearly stable Emacs on Darwin (the heart of 
 - remove the support of using org files in =config=.
 - remove =alwaysTangle=.
 
+I want to constrain only the output of config, not the form in which it is provided.
+
+But, what should I do if I want to use .org file as config? Convert =.org= file to =.el= file before using it. For example:
+#+begin_src nix
+# 1. create a helper for converting .org to .el
+orgToEl =
+    orgFile:
+    pkgs.runCommandLocal "org-to-el" { buildInputs = [ pkgs.emacs ]; } ''
+      emacs --batch -Q \
+        --eval "(require 'org)" \
+        --eval "(require 'ob-tangle)" \
+        --eval "(org-babel-tangle-file \"${orgFile}\" \"$out\" \"emacs-lisp\")"
+    '';
+
+# 2.1 convert .org to .el
+config = orgToEl ./config.org;
+
+# 2.2 convert multiple .org to .el
+config = orgToEl (pkgs.concatText "config.org" [
+  ./core.org
+  ./lib.org
+]);
+#+end_src
+
+As you can see, you can provide the config in any form, as long as the final output is an Emacs Lisp file.
+
 ** Revamp =defaultInitFile=
 - change =defaultInitFile= to =configAsDefaultInitFile=.
 - =configAsDefaultInitFile= only accepts bool value.
