@@ -3,21 +3,21 @@
 A nix overlay for bleeding edge and nearly stable Emacs on Darwin (the heart of macOS).
 
 * Breaking changes
-** change default branch
+** Change default branch
 Change default branch from =master= to =main=.
 
 ** Remove org-mode related features
-- remove the support of using org files in =config=.
-- remove =alwaysTangle=.
+- remove the support of using =.org= files in =config=.
+- remove =alwaysTangle=
 
-I want to constrain only the final output of =config=, not the form in which it is provided.
+I want to constrain only the final output of =config= - Emacs Lisp file or Emacs Lisp code, not the form in which it is provided.
 
 But, what should I do if I want to use =.org= file? Convert =.org= file to =.el= file before using it. For example:
 #+begin_src nix
 # 1. create a helper for converting .org to .el
 orgToEl =
     orgFile:
-    pkgs.runCommandLocal "org-to-el" { buildInputs = [ pkgs.emacs ]; } ''
+    pkgs.runCommandLocal "org-to-el" { buildInputs = [ emacs ]; } ''
       emacs --batch -Q \
         --eval "(require 'org)" \
         --eval "(require 'ob-tangle)" \
@@ -33,8 +33,6 @@ config = orgToEl (pkgs.concatText "config.org" [
   ./lib.org
 ]);
 #+end_src
-
-As you can see, you can provide the config in any form, as long as the final output is an Emacs Lisp file.
 
 ** Revamp =defaultInitFile=
 - change =defaultInitFile= to =configAsDefaultInitFile=.
