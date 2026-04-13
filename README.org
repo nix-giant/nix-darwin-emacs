@@ -2,6 +2,10 @@
 
 A nix overlay for bleeding edge and nearly stable Emacs on Darwin (the heart of macOS).
 
+#+begin_quote
+Originally forked from [[https://github.com/nix-community/emacs-overlay][nix-community/emacs-overlay]].
+#+end_quote
+
 * Breaking changes
 ** Change default branch
 Change default branch from =master= to =main=.
