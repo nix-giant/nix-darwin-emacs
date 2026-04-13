@@ -156,7 +156,7 @@ For example, =emacsWithPackagesFromUsePackage= adds packages which are required 
       # By default, the config is only for collecting the information of required
       # packages, the final result doesn't bundle the config.
       #
-      # To bundle the config into the final result as the default init file.
+      # To bundle the config into the final result as the default init file, set it to true.
       configAsDefaultInitFile = true;
 
       # By default emacsWithPackagesFromUsePackage will only pull in
