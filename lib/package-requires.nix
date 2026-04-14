@@ -1,5 +1,5 @@
 /*
-  Parse an emacs package file to derive packages from
+  Parse an emacs lisp configuration file to derive packages from
   Package-Requires declarations.
 */
 

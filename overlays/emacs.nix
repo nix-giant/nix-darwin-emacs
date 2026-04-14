@@ -101,7 +101,6 @@ in
     ./patches-29/round-undecorated-frame.patch
   ] { };
 
-  emacsWithPackagesFromUsePackage = import ../elisp.nix { pkgs = self; };
-
-  emacsWithPackagesFromPackageRequires = import ../packreq.nix { pkgs = self; };
+  emacsWithPackagesFromPackageRequires = import ../lib/package-requires.nix { pkgs = self; };
+  emacsWithPackagesFromUsePackage = import ../lib/use-package.nix { pkgs = self; };
 }
