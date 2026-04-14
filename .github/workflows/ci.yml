@@ -7,16 +7,16 @@ on:
 
 jobs:
   refresh-overlay:
-    name: Refresh inputs
+    name: Update repos
     runs-on: ubuntu-latest
     if: github.repository_owner == 'nix-giant'
     permissions:
       contents: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Install Nix
+      - name: Configure Nix
         uses: cachix/install-nix-action@v31
         with:
           nix_path: nixpkgs=channel:nixpkgs-unstable
@@ -30,7 +30,7 @@ jobs:
         run: |
           ./repos/update
 
-      - name: Push commit with updated inputs
+      - name: Push commits with updated repos
         run: |
           git pull --rebase --autostash
           git push
