@@ -1,0 +1,14 @@
+#!/usr/bin/env nix-shell
+#! nix-shell -i bash -p bash git
+
+REPOS_DIR=$(cd "$(dirname "$0")" && pwd)
+BASE_DIR=$(dirname $REPOS_DIR)
+
+for REPO_DIR in $REPOS_DIR/*/; do
+    REPO_NAME="${REPO_DIR#$BASE_DIR/}"
+    REPO_NAME="${REPO_NAME%/}"
+    $REPO_DIR/update && \
+        (git diff --exit-code $REPO_DIR > /dev/null || git commit -m "ci: update $REPO_NAME" -- $REPO_DIR)
+done
+
+exit 0
