@@ -55,47 +55,6 @@ let
         })
       )
 
-      # create EmacsClient.app stub so macOS shows the Emacs icon for emacsclient frames
-      (
-        drv:
-        drv.overrideAttrs (old: {
-          postInstall =
-            old.postInstall
-            + (
-              let
-                info = super.lib.generators.toPlist { escape = true; } {
-                  CFBundleExecutable = "EmacsClient";
-                  CFBundleIdentifier = "org.gnu.EmacsClient";
-                  CFBundleName = "EmacsClient";
-                  CFBundleVersion = repoMeta.version;
-                  CFBundleShortVersionString = repoMeta.version;
-                  CFBundlePackageType = "APPL";
-                  CFBundleIconFile = "EmacsClient.icns";
-                };
-              in
-              ''
-                ECAPP="$out/Applications/EmacsClient.app"
-                mkdir -p $ECAPP
-
-                mkdir -p "$ECAPP/Contents/MacOS"
-                cat > "$ECAPP/Contents/MacOS/EmacsClient" <<EOF
-                #!/bin/sh
-                exec $out/bin/emacsclient "\$@" &>/dev/null 2>&1 &
-                EOF
-                chmod +x "$ECAPP/Contents/MacOS/EmacsClient"
-
-                mkdir -p "$ECAPP/Contents/Resources"
-                cp ${./icons/Emacs.icns} "$ECAPP/Contents/Resources/EmacsClient.icns"
-
-                # create Info.plist
-                cat > "$ECAPP/Contents/Info.plist" <<EOF
-                ${info}
-                EOF
-              ''
-            );
-        })
-      )
-
       # make emacs package available on macOS only
       (
         drv:
