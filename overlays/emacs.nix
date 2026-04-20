@@ -80,7 +80,7 @@ let
                 mkdir -p "$ECAPP/Contents/MacOS"
                 cat > "$ECAPP/Contents/MacOS/EmacsClient" <<EOF
                 #!/bin/sh
-                exec $out/bin/emacsclient --reuse-frame "\$@" &>/dev/null 2>&1 &
+                exec $out/bin/emacsclient --reuse-frame --alternate-editor="" "\$@" &>/dev/null 2>&1 &
                 EOF
                 chmod +x "$ECAPP/Contents/MacOS/EmacsClient"
 
