@@ -14,9 +14,9 @@ Change default branch from =master= to =main=.
 - remove the support of using =.org= files in =config=.
 - remove =alwaysTangle=
 
-I want to constrain only the final output of =config= - Emacs Lisp file or Emacs Lisp code, not the form in which it is provided.
+I want to constrain only the input of =config= - Emacs Lisp file or Emacs Lisp code, not the way in which it is built.
 
-But, what should I do if I want to use =.org= file? Convert =.org= file to =.el= file before using it. For example:
+"But, what should I do if I want to use =.org= file?" Convert =.org= file to =.el= file before using it. For example:
 #+begin_src nix
 # 1. create a helper for converting .org to .el
 orgToEl =
