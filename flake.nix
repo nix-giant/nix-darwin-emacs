@@ -34,6 +34,10 @@
           packages.emacs-29 = pkgs.emacs-29;
 
           packages.test-build-emacs = pkgs.callPackage ./test/build-emacs { };
+          packages.example-emacsclient-app = pkgs.callPackage ./examples/emacsclient-app { };
+          packages.example-emacsclient-with-packages-app =
+            pkgs.callPackage ./examples/emacsclient-with-packages-app
+              { };
         }
       )
     );
