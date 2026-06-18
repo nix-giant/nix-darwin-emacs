@@ -125,13 +125,6 @@ in
     ./patches-30/round-undecorated-frame.patch
   ] { };
 
-  emacs-29 = mkEmacs "emacs-29" ../repos/emacs/29.json [
-    # patches from https://github.com/d12frosted/homebrew-emacs-plus
-    ./patches-29/fix-window-role.patch
-    ./patches-29/system-appearance.patch
-    ./patches-29/round-undecorated-frame.patch
-  ] { };
-
   emacsWithPackagesFromPackageRequires = import ../lib/package-requires.nix { pkgs = self; };
   emacsWithPackagesFromUsePackage = import ../lib/use-package.nix { pkgs = self; };
 }

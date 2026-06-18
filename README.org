@@ -64,7 +64,6 @@ Binary cache is not available.
 * Quick Start
 First, build it:
 #+begin_src sh
-$ nix build '.#emacs-29'
 $ nix build '.#emacs-30'
 $ nix build '.#emacs-unstable'
 #+end_src
@@ -144,7 +143,7 @@ For example, =emacsWithPackagesFromUsePackage= adds packages which are required 
   environment.systemPackages = [
     (pkgs.emacsWithPackagesFromUsePackage {
       # Package is optional, defaults to pkgs.emacs-unstable
-      package = pkgs.emacs-29;
+      package = pkgs.emacs-30;
 
       # Emacs config
       #

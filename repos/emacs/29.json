@@ -1,9 +1,0 @@
-{
-  "type": "github",
-  "owner": "emacs-mirror",
-  "repo": "emacs",
-  "branch": "emacs-29",
-  "rev": "75ca15f2a3146b17fde5e2a50ad9102c6108ba7f",
-  "sha256": "1ybmcb29n5nx7nvsfk0z1n9cx0lmxv92rprylamcqf1xg77xzjmz",
-  "version": "20240623.0"
-}
