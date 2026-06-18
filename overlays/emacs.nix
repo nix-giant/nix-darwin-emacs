@@ -121,8 +121,10 @@ in
   emacs-30 = mkEmacs "emacs-30" ../repos/emacs/30.json [
     # patches from https://github.com/d12frosted/homebrew-emacs-plus
     ./patches-30/fix-window-role.patch
+    ./patches-30/fix-ns-x-colors.patch
     ./patches-30/system-appearance.patch
     ./patches-30/round-undecorated-frame.patch
+    ./patches-30/treesit-compatibility.patch
   ] { };
 
   emacsWithPackagesFromPackageRequires = import ../lib/package-requires.nix { pkgs = self; };
