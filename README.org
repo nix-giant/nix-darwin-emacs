@@ -6,42 +6,6 @@ A nix overlay for stable Emacs releases on Darwin.
 Originally forked from [[https://github.com/nix-community/emacs-overlay][nix-community/emacs-overlay]].
 #+end_quote
 
-* Breaking changes
-** Change default branch
-Change default branch from =master= to =main=.
-
-** Remove org-mode related features
-- remove the support of using =.org= files in =config=.
-- remove =alwaysTangle=
-
-I want to constrain only the input of =config= - Emacs Lisp file or Emacs Lisp code, not the way in which it is built.
-
-"But, what should I do if I want to use =.org= file?" Convert =.org= file to =.el= file before using it. For example:
-#+begin_src nix
-# 1. create a helper for converting .org to .el
-orgToEl =
-    orgFile:
-    pkgs.runCommandLocal "org-to-el" { buildInputs = [ emacs ]; } ''
-      emacs --batch -Q \
-        --eval "(require 'org)" \
-        --eval "(require 'ob-tangle)" \
-        --eval "(org-babel-tangle-file \"${orgFile}\" \"$out\" \"emacs-lisp\")"
-    '';
-
-# 2.1 convert .org to .el
-config = orgToEl ./config.org;
-
-# 2.2 convert multiple .org to .el
-config = orgToEl (pkgs.concatText "config.org" [
-  ./core.org
-  ./lib.org
-]);
-#+end_src
-
-** Revamp =defaultInitFile=
-- change =defaultInitFile= to =configAsDefaultInitFile=.
-- =configAsDefaultInitFile= only accepts bool value.
-
 * About this overlay
 ** Emacs
 This overlay provides packages =emacs-*= which is:
@@ -237,6 +201,31 @@ And, to avoid the errors of missing archives, it is better to set:
                          ("nongnu-devel" . nil)
                          ("melpa"        . nil)
                          ("melpa-stable" . nil)))
+#+end_src
+
+* Using .org files
+I want to constrain only the input of =config= - Emacs Lisp file or Emacs Lisp code, not the way in which it is built.
+
+"But, what should I do if I want to use =.org= file?" Convert =.org= file to =.el= file before using it. For example:
+#+begin_src nix
+# 1. create a helper for converting .org to .el
+orgToEl =
+    orgFile:
+    pkgs.runCommandLocal "org-to-el" { buildInputs = [ emacs ]; } ''
+      emacs --batch -Q \
+        --eval "(require 'org)" \
+        --eval "(require 'ob-tangle)" \
+        --eval "(org-babel-tangle-file \"${orgFile}\" \"$out\" \"emacs-lisp\")"
+    '';
+
+# 2.1 convert .org to .el
+config = orgToEl ./config.org;
+
+# 2.2 convert multiple .org to .el
+config = orgToEl (pkgs.concatText "config.org" [
+  ./core.org
+  ./lib.org
+]);
 #+end_src
 
 * Testing
