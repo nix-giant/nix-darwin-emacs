@@ -1,6 +1,6 @@
 #+TITLE: nix-darwin-emacs
 
-A nix overlay for bleeding edge and nearly stable Emacs on Darwin (the heart of macOS).
+A nix overlay for stable Emacs releases on Darwin.
 
 #+begin_quote
 Originally forked from [[https://github.com/nix-community/emacs-overlay][nix-community/emacs-overlay]].
@@ -64,17 +64,8 @@ Binary cache is not available.
 * Quick Start
 First, build it:
 #+begin_src sh
-$ nix build '.#emacs-30'
-$ nix build '.#emacs-unstable'
+$ nix build '.#emacs-31'
 #+end_src
-
-#+begin_quote
-This repo can't guarantee =emacs-unstable= will be built successfully.
-
-This typically occurs because =emacs-unstable= updates very frequently, but the patches from =homebrew-emacs-plus= are incompatible with it. You could try syncing =overlays/unstable-patches= with the patches provided by =homebrew-emacs-plus/patches/emacs-31= (pull requests are welcome).
-
-As I normally use =emacs-30=, I don't update =overlays/unstable-patches= very promptly. ;(
-#+end_quote
 
 Then, explore the directory =result=:
 #+begin_src sh
@@ -142,7 +133,6 @@ For example, =emacsWithPackagesFromUsePackage= adds packages which are required 
 {
   environment.systemPackages = [
     (pkgs.emacsWithPackagesFromUsePackage {
-      # Package is optional, defaults to pkgs.emacs-unstable
       package = pkgs.emacs-30;
 
       # Emacs config

@@ -106,16 +106,10 @@ let
     ];
 in
 {
-  emacs-unstable = mkEmacs "emacs-unstable" ../repos/emacs/unstable.json [
-    # patches from https://github.com/d12frosted/homebrew-emacs-plus
-    ./patches-unstable/system-appearance.patch
-    ./patches-unstable/round-undecorated-frame.patch
-  ] { };
-
   emacs-31 = mkEmacs "emacs-31" ../repos/emacs/31.json [
     # patches from https://github.com/d12frosted/homebrew-emacs-plus
-    ./patches-unstable/system-appearance.patch
-    ./patches-unstable/round-undecorated-frame.patch
+    ./patches-31/system-appearance.patch
+    ./patches-31/round-undecorated-frame.patch
   ] { };
 
   emacs-30 = mkEmacs "emacs-30" ../repos/emacs/30.json [

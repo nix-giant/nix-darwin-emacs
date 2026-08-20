@@ -9,6 +9,7 @@ let
   inherit (pkgs) lib;
 in
 {
+  package,
   config,
   # use config as the default init file
   configAsDefaultInitFile ? false,
@@ -17,7 +18,6 @@ in
   # emulate `use-package-always-pin` behavior
   alwaysPin ? false,
   extraEmacsPackages ? epkgs: [ ],
-  package ? pkgs.emacs-unstable,
   override ? (self: super: { }),
 }:
 let

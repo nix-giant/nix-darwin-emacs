@@ -29,7 +29,7 @@
           };
         in
         {
-          packages.emacs-unstable = pkgs.emacs-unstable;
+          packages.emacs-31 = pkgs.emacs-31;
           packages.emacs-30 = pkgs.emacs-30;
 
           packages.test-build-emacs = pkgs.callPackage ./test/build-emacs { };

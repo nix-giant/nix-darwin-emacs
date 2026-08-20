@@ -8,9 +8,9 @@ let
   parse = pkgs.callPackage ./parse.nix { };
 in
 {
+  package,
   packageElisp,
   extraEmacsPackages ? epkgs: [ ],
-  package ? pkgs.emacs-unstable,
   override ? (self: super: { }),
 }:
 let
