@@ -108,6 +108,7 @@ in
 {
   emacs-31 = mkEmacs "emacs-31" ../repos/emacs/31.json [
     # patches from https://github.com/d12frosted/homebrew-emacs-plus
+    ./patches-31/fix-ns-x-colors.patch
     ./patches-31/system-appearance.patch
     ./patches-31/round-undecorated-frame.patch
   ] { };
