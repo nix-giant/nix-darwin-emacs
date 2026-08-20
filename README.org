@@ -2,10 +2,6 @@
 
 A nix overlay for stable Emacs releases on Darwin.
 
-#+begin_quote
-Originally forked from [[https://github.com/nix-community/emacs-overlay][nix-community/emacs-overlay]].
-#+end_quote
-
 * About this overlay
 ** Emacs
 This overlay provides packages =emacs-*= which is:
@@ -236,3 +232,7 @@ $ nix build '.#test-build-emacs'
 
 * License
 MIT
+
+#+begin_quote
+Originally forked from [[https://github.com/nix-community/emacs-overlay][nix-community/emacs-overlay]].
+#+end_quote
