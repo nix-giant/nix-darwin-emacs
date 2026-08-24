@@ -1,6 +1,6 @@
 #+TITLE: nix-darwin-emacs
 
-A nix overlay for stable Emacs releases on Darwin.
+A nix overlay for running Emacs stable branches on Darwin.
 
 * About this overlay
 ** Emacs
